@@ -2,6 +2,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
+import { Box, Typography } from "@mui/material"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,12 @@ export default function Home() {
         className={`${styles.page} ${geistSans.variable} ${geistMono.variable}`}
       >
         <main className={styles.main}>
+          <Box>
+            Something here
+            <Typography variant="h1">
+              Something bigger here
+            </Typography>
+          </Box>
           <Image
             className={styles.logo}
             src="/next.svg"
