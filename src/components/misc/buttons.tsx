@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles'
 
 export const PurplePrimaryButton = styled(Button)(({theme}) => ({
     background: theme.palette.primary.main,
-    color: theme.palette.text.primary,
+    color: '#fff',
     borderRadius: theme.spacing(1),
     padding: `${theme.spacing(2)} ${theme.spacing(3)}`,
     transition: 'background 300ms',

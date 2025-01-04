@@ -14,7 +14,7 @@ export default function MainHeader({loggedIn}:Props) {
                     <Grid2>
                         <Box>
                             <Link href="/">
-                                <Typography variant="h4">
+                                <Typography color="primary" variant="h4">
                                     CoderClub 
                                 </Typography>
                             </Link>

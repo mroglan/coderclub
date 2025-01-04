@@ -12,6 +12,7 @@ class InnerQueries {
 
 interface CreateTeacherData extends Omit<S_TeacherData, "sessions"> {}
 
+
 export async function createTeacher(data: CreateTeacherData) {
 
     return await client.query(
@@ -22,6 +23,7 @@ export async function createTeacher(data: CreateTeacherData) {
         )
     )
 }
+
 
 export async function getTeacherFromEmail(email:string) {
 
@@ -34,3 +36,8 @@ export async function getTeacherFromEmail(email:string) {
     ) as S_Teacher
 }
 
+
+export async function getTeacher(id: string) {
+
+    return await client.query(q.Get(q.Ref(q.Collection('users'), id))) as S_Teacher
+}
