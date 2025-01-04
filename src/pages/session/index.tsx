@@ -21,7 +21,7 @@ export default function Session({user}: Props) {
                 <title>Your Sessions | CoderClub</title>     
             </Head> 
             <div className="root-header-footer">
-                <MainHeader />
+                <MainHeader loggedIn />
                 <Main />
                 <div>footer</div>
             </div>

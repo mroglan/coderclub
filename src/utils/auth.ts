@@ -1,6 +1,8 @@
 import { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { parseCookies } from "nookies"
 import jwt from "jsonwebtoken"
+import axios from "axios";
+import Router from "next/router"
 
 import { S_Teacher } from "../database/interfaces/Teacher"
 import { getTeacher } from "@/database/operations/teacher";
@@ -33,8 +35,6 @@ async function getAuthTokenFromCtx(ctx: GetServerSidePropsContext) {
 export async function getUserFromCtx(ctx: GetServerSidePropsContext, disallowed?: string[]): Promise<{user: User|null, redirect: GetServerSidePropsResult<any>|null}> {
 
     const token = await getAuthTokenFromCtx(ctx)
-    
-    console.log('token', token)
 
     if (!token) {
         return {
@@ -80,4 +80,22 @@ export async function mustNotBeAuthenticated(ctx: GetServerSidePropsContext): Pr
     const destination = token.type == "teacher" ? "/session" : "/"
 
     return {props: {}, redirect: {destination, permanent: false}}
+}
+
+
+export async function logout() {
+    try {
+
+        await axios({
+            method: "POST",
+            url: "/api/logout"
+        })
+
+        Router.push({
+            pathname: "/"
+        })
+
+    } catch (e) {
+        console.log(e)
+    }
 }
