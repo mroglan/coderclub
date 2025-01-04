@@ -39,5 +39,5 @@ export async function getTeacherFromEmail(email:string) {
 
 export async function getTeacher(id: string) {
 
-    return await client.query(q.Get(q.Ref(q.Collection('users'), id))) as S_Teacher
+    return await client.query(q.Get(q.Ref(q.Collection('teacher'), id))) as S_Teacher
 }

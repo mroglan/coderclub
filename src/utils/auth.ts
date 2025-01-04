@@ -33,6 +33,8 @@ async function getAuthTokenFromCtx(ctx: GetServerSidePropsContext) {
 export async function getUserFromCtx(ctx: GetServerSidePropsContext, disallowed?: string[]): Promise<{user: User|null, redirect: GetServerSidePropsResult<any>|null}> {
 
     const token = await getAuthTokenFromCtx(ctx)
+    
+    console.log('token', token)
 
     if (!token) {
         return {
