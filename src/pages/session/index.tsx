@@ -22,7 +22,7 @@ export default function Session({user}: Props) {
             </Head> 
             <div className="root-header-footer">
                 <MainHeader loggedIn />
-                <Main />
+                <Main user={user} />
                 <div>footer</div>
             </div>
         </>

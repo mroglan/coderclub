@@ -1,5 +1,6 @@
 import client from "../fauna"
 import { query as q } from "faunadb"
+
 import { S_Teacher, S_TeacherData } from "../interfaces/Teacher"
 
 class InnerQueries {
