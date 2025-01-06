@@ -1,12 +1,12 @@
 import client from "../fauna"
 import { query as q } from "faunadb"
-import { SessionData } from "../interfaces/Session"
+import { S_Session, SessionData } from "../interfaces/Session"
 
 
 class InnerQueries {
 
     static existsSessionWithUrlName(name: string) {
-        return q.Exists(q.Match(q.Index('teacher_by_email'), name))
+        return q.Exists(q.Match(q.Index('session_by_url_name'), name))
     }
 }
 
@@ -45,4 +45,18 @@ export async function createSession(data: CreateSessionData) {
             )
         )
     )
+}
+
+
+export async function getSessionsFromTeacherId(teacherId: string) {
+
+    return await client.query(
+        q.Map(
+            q.Paginate(q.Match(q.Index("session_by_teacherId"), teacherId)),
+            q.Lambda(
+                "sessionRef",
+                q.Get(q.Var("sessionRef"))
+            )
+        )
+    ) as {data: S_Session[]}
 }

@@ -10,7 +10,6 @@ import Router from "next/router"
 
 
 interface Props {
-    user: C_Teacher;
     open: boolean;
     onClose: () => void;
 }
@@ -21,7 +20,7 @@ interface FormVals {
 }
 
 
-export function CreateDialog({user, open, onClose}: Props) {
+export function CreateDialog({open, onClose}: Props) {
 
     const onSubmit = async (values: FormVals, actions: FormikHelpers<FormVals>) => {
         try {

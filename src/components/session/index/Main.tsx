@@ -5,14 +5,16 @@ import { PurplePrimaryButton } from "@/components/misc/buttons"
 import { PrimaryLink } from "@/components/misc/links";
 import { C_Teacher } from "@/database/interfaces/Teacher"
 import { CreateDialog } from "./CreateDialog";
+import { C_Session } from "@/database/interfaces/Session";
 
 
 interface Props {
     user: C_Teacher;
+    sessions: C_Session[];
 }
 
 
-export default function Main({user}: Props) {
+export default function Main({user, sessions}: Props) {
 
     const [open, setOpen] = useState(false)
 
@@ -21,6 +23,7 @@ export default function Main({user}: Props) {
     }
 
     const closeCreateDialog = () => {
+        console.log("closing dialog")
         setOpen(false)
     }
 
@@ -31,12 +34,12 @@ export default function Main({user}: Props) {
                     Create New Session
                 </PurplePrimaryButton>
             </Box>
-            <CreateDialog user={user} open={open} onClose={closeCreateDialog} />
+            <CreateDialog open={open} onClose={closeCreateDialog} />
             <Box mt={3}>
-                {user.data.sessions.map(session => (
-                    <Box my={1}>
-                        <PrimaryLink href="/session/{name}" as={`/session/${session}`}>
-                            {session} 
+                {sessions.map(session => (
+                    <Box my={1} key={session.ref["@ref"].id}>
+                        <PrimaryLink href="/session/{name}" as={`/session/${session.data.url_name}`}>
+                            {session.data.name} 
                         </PrimaryLink>
                     </Box>
                 ))}
