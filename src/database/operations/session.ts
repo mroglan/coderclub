@@ -28,7 +28,7 @@ export async function createSession(data: CreateSessionData) {
                 {
                     newSession: q.Create(
                         q.Collection("session"), 
-                        {data: {...data, students: [], open: false, creationTime: Date.now()}}
+                        {data: {...data, open: false, creationTime: Date.now()}}
                     )
                 },
                 q.Update(q.Ref(q.Collection("teacher"), data.teacherId), {

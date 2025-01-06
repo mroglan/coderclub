@@ -42,3 +42,24 @@ export async function getTeacher(id: string) {
 
     return await client.query(q.Get(q.Ref(q.Collection('teacher'), id))) as S_Teacher
 }
+
+
+export async function getTeacherSessionDashboardInfo(teacherId: string, url_name: string) {
+
+    return await client.query(
+        q.If(
+            q.Exists(q.Match(q.Index("session_by_url_name"), url_name)),
+            q.Let(
+                {
+                    session: q.Get(q.Match(q.Index("session_by_url_name"), url_name))
+                },
+                q.If(
+                    q.Equals(q.Select(["data", "teacherId"], q.Var("session")), teacherId),
+                    q.Var("session"),
+                    null
+                )
+            ),
+            null
+        )
+    )
+}

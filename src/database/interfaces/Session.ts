@@ -3,7 +3,6 @@ import { S_Ref, C_Ref } from "./fauna";
 
 export interface SessionData {
     teacherId: string;
-    students: string[];
     name: string;
     url_name: string;
     open: boolean;
