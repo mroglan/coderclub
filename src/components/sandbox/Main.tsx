@@ -87,7 +87,7 @@ export default function Main() {
   useEffect(() => {
     if (editorRef.current && !editorViewRef.current) {
       const state = EditorState.create({
-        doc: "# Write your Python code here\nprint('Hello, world!')\nx = await input('Enter something: ')\nprint('You entered:', x)",
+        doc: "# Write your Python code here\nprint('Hello, world!')\nx = await input('Enter something: ')\nprint('You entered:', x)\ny = await input('another: ')\nprint('another:', y)",
         extensions: [basicSetup, python()],
       });
       editorViewRef.current = new EditorView({
