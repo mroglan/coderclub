@@ -28,6 +28,10 @@ export default function Main() {
             setAlert("Please enter a session")
             return
         }
+        // TODO: give teacher option to set status of session as "open",
+        // giving students the ability to join using the login and be added to 
+        // the session automatically. The coderClubId will be necessary for 
+        // that feature in order to avoid name conflicts.
         let tmpUniqueId = localStorage.getItem("coderClubId")
         if (!tmpUniqueId) {
             tmpUniqueId = window.crypto.randomUUID()
