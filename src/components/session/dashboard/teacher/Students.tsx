@@ -2,10 +2,11 @@ import FormikTextField from "@/components/formik/TextField";
 import { PurplePrimaryButton } from "@/components/misc/buttons";
 import { C_Session } from "@/database/interfaces/Session";
 import { C_Student } from "@/database/interfaces/Student";
-import { Box, FormGroup, Grid2, Typography } from "@mui/material";
+import { Box, FormGroup, Grid2, IconButton, Typography } from "@mui/material";
 import axios from "axios";
 import { Form, Formik, FormikHelpers } from "formik";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 
 interface Props {
@@ -23,6 +24,8 @@ interface FormVals {
 export default function Students({session, students, setStudents}: Props) {
 
     console.log("students", students)
+
+    const [deleting, setDeleting] = useState(false)
 
     const onSubmit = async (values: FormVals, actions: FormikHelpers<FormVals>) => {
 
@@ -50,6 +53,26 @@ export default function Students({session, students, setStudents}: Props) {
         }
     }
 
+    const removeStudent = async (studentId: string) => {
+
+        setDeleting(true)
+
+        try {
+
+            await axios({
+                method: "POST",
+                url: `/api/session/${session.data.url_name}/student/remove`,
+                data: {studentId}
+            })
+
+            setDeleting(false)
+            setStudents(students.filter(s => s.ref["@ref"].id != studentId))
+        } catch (e) {
+            console.log(e)
+            setDeleting(false)
+        }
+    }
+
     return (
         <Box>
             <Box mb={2}>
@@ -60,9 +83,18 @@ export default function Students({session, students, setStudents}: Props) {
             <Box mb={2}>
                 {students.map(student => (
                     <Box key={student.data.name} my={1}>
-                        <Typography variant="body1">
-                            {student.data.name}
-                        </Typography>
+                        <Grid2 container alignItems="center">
+                            <Grid2 flex={1}>
+                                <Typography variant="body1">
+                                    {student.data.name}
+                                </Typography>
+                            </Grid2>
+                            <Grid2>
+                                <IconButton color="primary" disabled={deleting} onClick={() => removeStudent(student.ref["@ref"].id)}>
+                                    <DeleteOutlineIcon /> 
+                                </IconButton>
+                            </Grid2>
+                        </Grid2>
                     </Box>
                 ))}
             </Box>
