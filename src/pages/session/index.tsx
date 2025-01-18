@@ -6,6 +6,7 @@ import { getUserFromCtx, mustNotBeAuthenticated } from "@/utils/auth"
 import { C_Teacher } from "@/database/interfaces/Teacher"
 import { getSessionsFromTeacherId } from "@/database/operations/session"
 import { C_Session } from "@/database/interfaces/Session"
+import MainFooter from "@/components/nav/MainFooter"
 
 
 interface Props {
@@ -24,7 +25,7 @@ export default function Session({user, sessions}: Props) {
             <div className="root-header-footer">
                 <MainHeader loggedIn />
                 <Main user={user} sessions={sessions} />
-                <div>footer</div>
+                <MainFooter />
             </div>
         </>
     )

@@ -2,6 +2,8 @@ import client from "../fauna"
 import { query as q } from "faunadb"
 
 import { S_Teacher, S_TeacherData } from "../interfaces/Teacher"
+import { S_Session } from "../interfaces/Session"
+import { S_Student } from "../interfaces/Student"
 
 class InnerQueries {
 
@@ -55,11 +57,23 @@ export async function getTeacherSessionDashboardInfo(teacherId: string, url_name
                 },
                 q.If(
                     q.Equals(q.Select(["data", "teacherId"], q.Var("session")), teacherId),
-                    q.Var("session"),
+                    {
+                        session: q.Var("session"),
+                        students: q.Select("data", q.Map(
+                            q.Paginate(q.Match(q.Index("student_by_sessionId"), q.Select(["ref", "id"], q.Var("session")))),
+                            q.Lambda(
+                                "studentRef",
+                                q.Get(q.Var("studentRef"))
+                            )
+                        ))
+                    },
                     null
                 )
             ),
             null
         )
-    )
+    ) as {
+        session: S_Session;
+        students: S_Student[];
+    }
 }

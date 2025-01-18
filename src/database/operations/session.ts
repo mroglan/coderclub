@@ -3,7 +3,7 @@ import { query as q } from "faunadb"
 import { S_Session, SessionData } from "../interfaces/Session"
 
 
-class InnerQueries {
+export class InnerQueries {
 
     static existsSessionWithUrlName(name: string) {
         return q.Exists(q.Match(q.Index('session_by_url_name'), name))
