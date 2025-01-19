@@ -118,9 +118,10 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
                                             <ListItem key={step} sx={{mb: 1}}>
                                                 <Grid2 container alignItems="center" width="100%">
                                                     <Grid2 flex={1}>
-                                                        <Typography variant="body1">
+                                                        <PrimaryLink href="/session/{url_name}/tutorial/{tutorial_name}?step=step"
+                                                        as={`/session/${session.data.url_name}/tutorial/${tutorial.data.name}?step=${step}`} >
                                                             {step}
-                                                        </Typography>
+                                                        </PrimaryLink>
                                                     </Grid2>
                                                     <Grid2>
                                                         <Button disabled={togglingLocked} onClick={() => toggleLocked(tutorial, step)}>
