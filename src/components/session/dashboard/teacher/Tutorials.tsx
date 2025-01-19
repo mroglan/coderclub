@@ -15,17 +15,12 @@ interface Props {
 }
 
 
-const stepToUrlName = (step: string) => {
-    return step.split(" ").join("_")
-}
-
-
 export default function Tutorials({session, tutorials, setTutorials}: Props) {
-
-    console.log("tutorials", tutorials)
 
     const [adding, setAdding] = useState(false)
     const [tutorialToAdd, setTutorialToAdd] = useState("")
+
+    const [togglingLocked, setTogglingLocked] = useState(false)
 
     const possibleTutorialsToAdd = useMemo(() => (
         TUTORIAL_NAMES.filter(n => !tutorials.find(t => t.data.name === n))
@@ -59,6 +54,47 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
         }
     }
 
+    const toggleLocked = async (tutorial: C_SessionTutorial, step: string) => {
+        setTogglingLocked(true) 
+
+        const unlockSolutions = [...tutorial.data.unlockSolutions]
+
+        if (unlockSolutions.includes(step)) {
+            unlockSolutions.splice(unlockSolutions.indexOf(step), 1)
+        } else {
+            unlockSolutions.push(step)
+        }
+
+        try {
+
+            await axios({
+                method: "POST",
+                url: `/api/session/${session.data.url_name}/tutorial/update`,
+                data: {
+                    sessionId: session.ref["@ref"].id,
+                    name: tutorial.data.name,
+                    data: {
+                        unlockSolutions
+                    }
+                }
+            })
+
+            const copy = tutorials.map(c => {
+                if (c.data.name === tutorial.data.name) {
+                    c.data.unlockSolutions = unlockSolutions
+                }
+                return c
+            })
+
+            setTogglingLocked(false)
+            setTutorials(copy)
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setTogglingLocked(false)
+        }
+    }
+
     return (
         <Box ml={3} mb={2}>
             <Box mb={2}>
@@ -87,8 +123,12 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
                                                         </Typography>
                                                     </Grid2>
                                                     <Grid2>
-                                                        <Button>
-                                                            Solutions Locked
+                                                        <Button disabled={togglingLocked} onClick={() => toggleLocked(tutorial, step)}>
+                                                            {
+                                                                tutorial.data.unlockSolutions.includes(step) ?
+                                                                "Solution Unlocked" :
+                                                                "Solution Locked"
+                                                            }
                                                         </Button>
                                                     </Grid2>
                                                 </Grid2>

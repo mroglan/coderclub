@@ -1,9 +1,9 @@
-import { CreateSessionTutorialByTeacher } from "@/database/operations/sessionTutorial";
+import { CreateSessionTutorialByTeacher, UpdateSessionTutorialByTeacher } from "@/database/operations/sessionTutorial";
 import { verifyUser } from "@/utils/auth";
 import { NextApiRequest, NextApiResponse } from "next";
 
 
-export default verifyUser(async function AddTutorial(req: NextApiRequest, res: NextApiResponse) {
+export default verifyUser(async function UpdateTutorial(req: NextApiRequest, res: NextApiResponse) {
 
     try {
 
@@ -12,16 +12,16 @@ export default verifyUser(async function AddTutorial(req: NextApiRequest, res: N
         }
 
         if (req.body.jwtUser.type !== "teacher") {
-            return res.status(403).json({msg: "Only teachers may add tutorials"})
+            return res.status(403).json({msg: "Only teachers may update tutorials"})
         }
 
-        const tutorial = await CreateSessionTutorialByTeacher(req.body.jwtUser.id, req.query.url_name as string, req.body.name)
+        const tutorial = await UpdateSessionTutorialByTeacher(req.body.jwtUser.id, req.body.sessionId as string, req.body.name, req.body.data)
 
         if (!tutorial) {
-            return res.status(409).json({msg: "Error adding student"})
+            return res.status(409).json({msg: "Error updating tutorial"})
         }
 
-        return res.status(200).json({tutorial: tutorial})
+        return res.status(200).json({msg: "Success"})
     } catch (e) {
         console.log(e)
         return res.status(500).json({msg: "Internal server error"})

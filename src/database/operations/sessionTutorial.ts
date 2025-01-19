@@ -23,3 +23,13 @@ export async function CreateSessionTutorialByTeacher(teacherId: string, session_
     ) as C_SessionTutorial
 }
 
+
+export async function UpdateSessionTutorialByTeacher(teacherId: string, sessionId: string, name: string, data: any) {
+
+    return await client.query(
+        q.Update(
+            q.Select(0, q.Paginate(q.Match(q.Index("sessionTutorial_by_sessionId_teacherId_name"), [sessionId, teacherId, name]))),
+            {data}
+        )
+    )
+}
