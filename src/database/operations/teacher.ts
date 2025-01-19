@@ -65,6 +65,13 @@ export async function getTeacherSessionDashboardInfo(teacherId: string, url_name
                                 "studentRef",
                                 q.Get(q.Var("studentRef"))
                             )
+                        )),
+                        tutorials: q.Select("data", q.Map(
+                            q.Paginate(q.Match(q.Index("sessionTutorial_by_sessionId"), q.Select(["ref", "id"], q.Var("session")))),
+                            q.Lambda(
+                                "tutorialRef",
+                                q.Get(q.Var("tutorialRef"))
+                            )
                         ))
                     },
                     null

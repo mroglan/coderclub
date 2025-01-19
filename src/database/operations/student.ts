@@ -8,7 +8,7 @@ interface CreateStudentData {
 }
 
 
-class InnerQueries {
+export class InnerQueries {
 
     static sessionWithTeacherValidatedWrapper(teacherId: string, session_url_name: string, query: any) {
         return (

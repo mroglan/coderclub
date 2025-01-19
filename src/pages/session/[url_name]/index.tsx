@@ -2,6 +2,7 @@ import MainFooter from "@/components/nav/MainFooter";
 import MainHeader from "@/components/nav/MainHeader";
 import TeacherMain from "@/components/session/dashboard/teacher/Main";
 import { C_Session } from "@/database/interfaces/Session";
+import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
 import { C_Student } from "@/database/interfaces/Student";
 import { C_Teacher } from "@/database/interfaces/Teacher";
 import { getTeacherSessionDashboardInfo } from "@/database/operations/teacher";
@@ -13,6 +14,7 @@ import Head from "next/head";
 export interface TeacherData {
     session: C_Session;
     students: C_Student[];
+    tutorials: C_SessionTutorial[];
 }
 
 
@@ -56,19 +58,12 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
         return redirect
     }
 
-    console.log('url_name', ctx.query.url_name)
-
-    console.log(JSON.stringify(user?.ref))
-    console.log(user?.ref.id)
-
     let data = null
     let type = ""
     if (JSON.stringify(user?.ref).includes("teacher")) {
         data = await getTeacherSessionDashboardInfo(user?.ref.id as string, ctx.query.url_name as string)
         type = "Teacher"
     }
-
-    console.log("data", data)
     
 
     return {props: {
