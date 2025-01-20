@@ -8,12 +8,23 @@ import { S_Teacher } from "../database/interfaces/Teacher"
 import { getTeacher } from "@/database/operations/teacher";
 
 
-type User = S_Teacher | null;
+export interface StudentFromJWT {
+    id: string;
+    name: string;
+    sessionId: string;
+    sessionUrlName: string
+}
+
+
+type User = S_Teacher | StudentFromJWT;
 
 interface AuthToken {
     id: string;
     type: "teacher" | "student";
-    email?: string;
+    email?: string; // teacher
+    name?: string; // student
+    sessionId?: string; // student
+    sessionUrlName?: string; // student
 }
 
 
@@ -37,18 +48,19 @@ async function getAuthTokenFromCtx(ctx: GetServerSidePropsContext) {
 }
 
 
-export async function getUserFromCtx(ctx: GetServerSidePropsContext, disallowed?: string[]): Promise<{user: User|null, redirect: GetServerSidePropsResult<any>|null}> {
+export async function getUserFromCtx(ctx: GetServerSidePropsContext, disallowed?: string[]): Promise<{user: User|null, redirect: GetServerSidePropsResult<any>|null, token: AuthToken|null}> {
 
     const token = await getAuthTokenFromCtx(ctx)
 
     if (!token) {
         return {
             user: null,
-            redirect: {props: {}, redirect: {destination: "/", permanent: false}}
+            redirect: {props: {}, redirect: {destination: "/", permanent: false}},
+            token: null
         }
     }
 
-    const destination = token.type == "teacher" ? "/login" : "/"
+    const destination = token.type == "teacher" ? "/login" : `/session/${token.sessionUrlName}`
 
     try {
 
@@ -56,21 +68,28 @@ export async function getUserFromCtx(ctx: GetServerSidePropsContext, disallowed?
             console.log(`${token.type} type not allowed.`)
             return {
                 user: null,
-                redirect: {props: {}, redirect: {destination, permanent: false}}
+                redirect: {props: {}, redirect: {destination, permanent: false}},
+                token: null
             }
         }
 
-        const user: User = token.type == "teacher" ? await getTeacher(token.id) : null
+        const user: User = token.type == "teacher" ? await getTeacher(token.id) : {
+            id: token.id,
+            sessionId: token.sessionId,
+            sessionUrlName: token.sessionUrlName,
+            name: token.name
+        } as StudentFromJWT
 
         if (!user) {
             throw new Error("No user found")
         }
 
-        return {user, redirect: null}
+        return {user, redirect: null, token}
     } catch (e) {
         return {
             user: null,
-            redirect: {props: {}, redirect: {destination: "/", permanent: false}}
+            redirect: {props: {}, redirect: {destination: "/", permanent: false}},
+            token: null
         }
     }
 }
@@ -82,7 +101,7 @@ export async function mustNotBeAuthenticated(ctx: GetServerSidePropsContext): Pr
 
     if (!token) return null
 
-    const destination = token.type == "teacher" ? "/session" : "/"
+    const destination = token.type == "teacher" ? "/session" : `/session/${token.sessionUrlName}`
 
     return {props: {}, redirect: {destination, permanent: false}}
 }

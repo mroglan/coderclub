@@ -5,6 +5,8 @@ import { PurplePrimaryLine } from "../misc/line";
 import { PurplePrimaryButton } from "../misc/buttons";
 import { useState } from "react";
 import axios from "axios";
+import Router from "next/router"
+import { sessionNameToUrlName } from "@/utils/session";
 
 
 interface FormVals {
@@ -39,14 +41,15 @@ export default function Main() {
         }
         console.log(tmpUniqueId)
         try {
-            const {data} = await axios({
+            await axios({
                 method: "POST",
                 url: "/api/session/join",
                 data: {...values, tmpUniqueId}
             })
 
-            console.log(data)
-
+            Router.push({
+                pathname: `/session/${sessionNameToUrlName(values.session)}`
+            }) 
         } catch (e) {
             setAlert((e as any)?.response?.data?.msg)
         }
