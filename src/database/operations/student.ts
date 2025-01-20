@@ -1,6 +1,7 @@
 import client from "../fauna"
 import { Expr, query as q } from "faunadb"
 import { InnerQueries as SessionInnerQueries } from "./session";
+import { InnerQueries as SessionTutorialInnerQueries } from "./sessionTutorial"
 import { S_Student } from "../interfaces/Student";
 import { StudentFromJWT } from "@/utils/auth";
 import { S_Session } from "../interfaces/Session";
@@ -118,4 +119,25 @@ export async function getStudentSessionDashboardInfo(studentJWT: StudentFromJWT,
         session: S_Session;
         tutorials: S_SessionTutorial[];
     }
+}
+
+
+export async function getStudentTutorialInfo(studentJWT: StudentFromJWT, tutorialName: string) {
+
+    return await client.query(
+        q.If(
+            SessionTutorialInnerQueries.existsSessionTutorialWithNameAndSessionId(tutorialName, studentJWT.sessionId),
+            {
+                tutorial: q.Get(q.Match(q.Index("sessionTutorial_by_sessionId_name"), [studentJWT.sessionId, tutorialName])),
+                progress: q.Select("data", q.Map(
+                    q.Paginate(q.Match(q.Index("studentTutorialProgress_by_sessionId_tutorialName_studentId"), [studentJWT.sessionId, tutorialName, studentJWT.id])),
+                    q.Lambda(
+                        "progressRef",
+                        q.Get(q.Var("progressRef"))
+                    )
+                ))
+            },
+            null
+        )
+    )
 }

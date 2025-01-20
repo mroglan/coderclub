@@ -67,7 +67,7 @@ export const TUTORIAL_STEPS = {
     ],
     "Next1": [],
     "Next2": []
-}
+} as {[key: string]: string[]}
 
 
 interface SessionTutorialData {

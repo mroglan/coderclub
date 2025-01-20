@@ -1,6 +1,7 @@
 import MainFooter from "@/components/nav/MainFooter";
 import MainHeader from "@/components/nav/MainHeader";
-import Main from "@/components/sandbox/Main";
+import Main from "@/components/sandbox/Main2";
+// import Main from "@/components/sandbox/Main";
 import Head from "next/head";
 
 export default function Sandbox() {

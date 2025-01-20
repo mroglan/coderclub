@@ -4,6 +4,14 @@ import { InnerQueries as StudentInnerQueries } from "./student"
 import { C_SessionTutorial } from "../interfaces/SessionTutorial"
 
 
+export class InnerQueries {
+
+    static existsSessionTutorialWithNameAndSessionId(name: string, sessionId: string) {
+        return q.Exists(q.Match(q.Index("sessionTutorial_by_sessionId_name"), [sessionId, name]))
+    }
+}
+
+
 export async function CreateSessionTutorialByTeacher(teacherId: string, session_url_name: string, name: string) {
 
     return await client.query(
