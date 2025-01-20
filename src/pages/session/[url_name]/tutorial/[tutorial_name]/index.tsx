@@ -5,6 +5,7 @@ import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
 import { C_StudentTutorialProgress } from "@/database/interfaces/StudentTutorialProgress";
 import { getStudentTutorialInfo } from "@/database/operations/student";
 import { getUserFromCtx, mustNotBeAuthenticated, StudentFromJWT } from "@/utils/auth";
+import { NoSsr } from "@mui/material";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import Head from "next/head";
 
@@ -36,7 +37,9 @@ export default function Tutorial({data, type}: Props) {
             </Head> 
             <div className="root-header-footer">
                 <MainHeader loggedIn />
-                <Main data={data} type={type} />
+                <NoSsr>
+                    <Main data={data} type={type} />
+                </NoSsr>
                 <MainFooter />
             </div>
         </>

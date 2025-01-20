@@ -1,9 +1,11 @@
-import { C_SessionTutorial, TUTORIAL_STEPS } from "@/database/interfaces/SessionTutorial";
+import { DefaultEditor, EditorTabs } from "@/components/codingUtils/Editor";
+import { C_SessionTutorial, TUTORIAL_SOLUTIONS, TUTORIAL_STEPS } from "@/database/interfaces/SessionTutorial";
 import { C_StudentTutorialProgress } from "@/database/interfaces/StudentTutorialProgress";
 import { Props } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
+import { EditorView } from "@codemirror/view";
 import { Box, Container, Grid2 } from "@mui/material";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 
 export default function Main({data, type}: Props) {
@@ -18,8 +20,19 @@ export default function Main({data, type}: Props) {
         }, undefined, {shallow: true})
     }, [router.query])
 
+    const tabs = useMemo(() => {
+        if (type === "teacher") {
+            return ["My Code", "Student Code", "Solution"]
+        }
+        return ["My Code", "Solution"]
+    }, [type])
+
+
+    const editorRef = useRef<HTMLDivElement>(null);
+    const editorViewRef = useRef<EditorView>(null);
 
     const [myCode, setMyCode] = useState({id: null, code: "", stepName: ""})
+    const [selectedTab, setSelectedTab] = useState("My Code")
 
     useMemo(() => {
         if (!router.query.step) return
@@ -44,7 +57,27 @@ export default function Main({data, type}: Props) {
 
     console.log("progress", myCode)
 
-    const runCode = async (code: string, codeType: string) => {
+    const changeTab = (tab: string) => {
+        if (selectedTab == "My Code") {
+            setMyCode({...myCode, code: (editorViewRef as any).current.state.doc.toString()})
+        }
+        setSelectedTab(tab)
+    }
+
+    useMemo(() => {
+        if (!editorViewRef.current) return
+        let newContent: any = ""
+        if (selectedTab === "My Code") {
+            newContent = myCode.code
+        } else if (selectedTab === "Solution") {
+            newContent = TUTORIAL_SOLUTIONS[data.tutorial.data.name][router.query.step as string]
+        }
+        (editorViewRef as any).current.dispatch({
+            changes: { from: 0, to: (editorViewRef as any).current.state.doc.length, insert: newContent },
+        });
+    }, [selectedTab])
+
+    const runCode = async (code: string) => {
         // codeType is either myCode, studentCode (if teacher looking at student's code), or solutionCode
 
         // editor will include button to run code that will call this function. It will pause it's run code
@@ -56,17 +89,17 @@ export default function Main({data, type}: Props) {
     return (
         <Box my={3}>
             <Container maxWidth="xl">
-                main
-                {/* <Box mx={3}>
+                <Box mx={3}>
                     <Grid2 container spacing={3}>
                         <Grid2 size={{xs: 6}}>
-                            editor
+                            <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
+                            <DefaultEditor originalCode={myCode.code} editorRef={editorRef} editorViewRef={editorViewRef} />
                         </Grid2>
                         <Grid2 size={{xs: 6}}>
                             output
                         </Grid2>
                     </Grid2>
-                </Box> */}
+                </Box>
             </Container>
         </Box>
     )

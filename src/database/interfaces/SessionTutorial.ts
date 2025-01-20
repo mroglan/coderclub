@@ -70,6 +70,13 @@ export const TUTORIAL_STEPS = {
 } as {[key: string]: string[]}
 
 
+export const TUTORIAL_SOLUTIONS = {
+    "Hello World": {
+        "Say hello!": "print('Hello World!')"
+    }
+} as {[key: string]: {[key: string]: string}}
+
+
 interface SessionTutorialData {
     name: string;
     unlockSolutions: string[];
