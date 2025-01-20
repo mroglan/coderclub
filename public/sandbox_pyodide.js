@@ -1,5 +1,28 @@
 import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.27.1/full/pyodide.mjs";
 
+let pyodide;
+
+const loadPyodideInstance = async () => {
+    pyodide = await loadPyodide();
+
+    pyodide.registerJsModule("js_functions", {
+        logMessage: (msg) => {
+            self.postMessage({ type: "log", message: msg });
+        },
+        getInput: async (prompt) => {
+            return new Promise((resolve) => {
+                self.inputResolver = resolve;
+                self.postMessage({ type: "input_request", prompt });
+            });
+        }
+    });
+
+    self.postMessage({ type: "log", message: "Pyodide ready" }); // Notify main thread that Pyodide is ready
+};
+
+// Load Pyodide immediately when the worker starts
+loadPyodideInstance();
+
 self.onmessage = async (event) => {
     if (event.data.type === "stop") {
         self.close();
@@ -12,24 +35,24 @@ self.onmessage = async (event) => {
     } else {
         // importScripts("https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js");
 
-        if (!self.pyodide) {
-            self.pyodide = await loadPyodide();
-        }
+        // if (!self.pyodide) {
+        //     self.pyodide = await loadPyodide();
+        // }
 
-        self.pyodide.registerJsModule("js_functions", {
-            logMessage: (msg) => {
-                self.postMessage({ type: "log", message: msg });
-            },
-            getInput: async (prompt) => {
-                return new Promise((resolve) => {
-                    self.inputResolver = resolve;
-                    self.postMessage({ type: "input_request", prompt });
-                });
-            }
-        });
+        // self.pyodide.registerJsModule("js_functions", {
+        //     logMessage: (msg) => {
+        //         self.postMessage({ type: "log", message: msg });
+        //     },
+        //     getInput: async (prompt) => {
+        //         return new Promise((resolve) => {
+        //             self.inputResolver = resolve;
+        //             self.postMessage({ type: "input_request", prompt });
+        //         });
+        //     }
+        // });
 
         try {
-            const result = await self.pyodide.runPythonAsync(event.data.code);
+            const result = await pyodide.runPythonAsync(event.data.code);
             self.postMessage({ type: "result", data: result });
         } catch (e) {
             self.postMessage({ type: "error", error: e.message });
