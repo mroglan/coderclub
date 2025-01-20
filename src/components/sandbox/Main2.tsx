@@ -12,7 +12,7 @@ const Main = () => {
         console.log('effect')
         if (worker) return
 
-        const pyodideWorker = new Worker("/pyodide.js", {type: "module"});
+        const pyodideWorker = new Worker("/sandbox_pyodide.js", {type: "module"});
         setWorker(pyodideWorker);
 
         pyodideWorker.onmessage = (event) => {
@@ -35,7 +35,7 @@ const Main = () => {
 
     const runPyodide = () => {
         if (!worker) {
-            const pyodideWorker = new Worker("/pyodide.js", {type: "module"});
+            const pyodideWorker = new Worker("/sandbox_pyodide.js", {type: "module"});
             setWorker(pyodideWorker);
 
             pyodideWorker.onmessage = (event) => {
