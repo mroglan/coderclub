@@ -2,6 +2,9 @@ import client from "../fauna"
 import { Expr, query as q } from "faunadb"
 import { InnerQueries as SessionInnerQueries } from "./session";
 import { S_Student } from "../interfaces/Student";
+import { StudentFromJWT } from "@/utils/auth";
+import { S_Session } from "../interfaces/Session";
+import { S_SessionTutorial } from "../interfaces/SessionTutorial";
 
 interface CreateStudentData {
     name: string;
@@ -89,4 +92,30 @@ export async function getStudentFromNameAndSessionUrlName(studentName: string, s
             null
         )
     ) as S_Student
+}
+
+
+export async function getStudentSessionDashboardInfo(studentJWT: StudentFromJWT, sessionUrlName: string) {
+
+    if (sessionUrlName !== studentJWT.sessionUrlName) return null
+
+    return await client.query(
+        q.If(
+            SessionInnerQueries.existsSessionWithUrlName(sessionUrlName),
+            {
+                session: q.Get(q.Match(q.Index("session_by_url_name"), sessionUrlName)),
+                tutorials: q.Select("data", q.Map(
+                    q.Paginate(q.Match(q.Index("sessionTutorial_by_sessionId"), studentJWT.sessionId)),
+                    q.Lambda(
+                        "tutorialRef",
+                        q.Get(q.Var("tutorialRef"))
+                    )
+                ))
+            },
+            null
+        )
+    ) as {
+        session: S_Session;
+        tutorials: S_SessionTutorial[];
+    }
 }

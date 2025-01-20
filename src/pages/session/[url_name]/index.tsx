@@ -1,12 +1,14 @@
 import MainFooter from "@/components/nav/MainFooter";
 import MainHeader from "@/components/nav/MainHeader";
+import StudentMain from "@/components/session/dashboard/student/Main";
 import TeacherMain from "@/components/session/dashboard/teacher/Main";
 import { C_Session } from "@/database/interfaces/Session";
 import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
 import { C_Student } from "@/database/interfaces/Student";
 import { C_Teacher } from "@/database/interfaces/Teacher";
+import { getStudentSessionDashboardInfo } from "@/database/operations/student";
 import { getTeacherSessionDashboardInfo } from "@/database/operations/teacher";
-import { getUserFromCtx, mustNotBeAuthenticated } from "@/utils/auth";
+import { getUserFromCtx, mustNotBeAuthenticated, StudentFromJWT } from "@/utils/auth";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import Head from "next/head";
 
@@ -20,6 +22,8 @@ export interface TeacherData {
 
 interface StudentData {
     session: C_Session;
+    tutorials: C_SessionTutorial[];
+    student: StudentFromJWT;
 }
 
 
@@ -31,6 +35,8 @@ interface Props {
 
 export default function Session({data, type}: Props) {
 
+    type = type[0].toUpperCase() + type.slice(1)
+
     return (
         <>
             <Head>
@@ -41,7 +47,7 @@ export default function Session({data, type}: Props) {
                 {
                     type == "Teacher" ?
                     <TeacherMain {...data as TeacherData} /> :
-                    null
+                    <StudentMain {...data as StudentData} />
                 }
                 <MainFooter />
             </div>
@@ -64,7 +70,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
     if (token?.type == "teacher") {
         data = await getTeacherSessionDashboardInfo((user as any)?.ref.id as string, ctx.query.url_name as string)
     } else {
-        data = user
+        data = await getStudentSessionDashboardInfo(user as StudentFromJWT, ctx.query.url_name as string)
     }
 
     if (!data) {
@@ -75,6 +81,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
             return {props: {}, redirect: {destination: "/", permanent: false}}
         }
         return redirect
+    }
+
+    if (token?.type === "student") {
+        (data as any).student = user
     }
     
 

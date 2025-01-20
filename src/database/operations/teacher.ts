@@ -4,6 +4,7 @@ import { query as q } from "faunadb"
 import { S_Teacher, S_TeacherData } from "../interfaces/Teacher"
 import { S_Session } from "../interfaces/Session"
 import { S_Student } from "../interfaces/Student"
+import { C_SessionTutorial, S_SessionTutorial } from "../interfaces/SessionTutorial"
 
 class InnerQueries {
 
@@ -82,5 +83,6 @@ export async function getTeacherSessionDashboardInfo(teacherId: string, url_name
     ) as {
         session: S_Session;
         students: S_Student[];
+        tutorials: S_SessionTutorial[];
     }
 }
