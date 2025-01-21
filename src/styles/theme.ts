@@ -10,6 +10,10 @@ export const theme = createTheme({
         background: {
             default: "hsl(287, 98%, 98%)",
             paper: "#fff"
+        },
+        success: {
+            main: "hsl(131, 83%, 45%)",
+            dark: "hsl(131, 83%, 32%)",
         }
     }
 })
