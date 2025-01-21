@@ -1,4 +1,5 @@
 import { DefaultEditor, EditorTabs } from "@/components/codingUtils/Editor";
+import { DefaultErrorDisplay } from "@/components/codingUtils/ErrorDisplay";
 import { Terminal } from "@/components/codingUtils/Output";
 import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
@@ -37,6 +38,7 @@ export default function Main({data, type}: Props) {
         ready: false,
         executing: false,
     })
+    const [executionError, setExecutionError] = useState("")
 
     const configurePyodideWorker = (worker: Worker) => {
         worker.onmessage = (event) => {
@@ -62,24 +64,28 @@ export default function Main({data, type}: Props) {
     }
 
     const pyodideListener = (event: MessageEvent) => {
-            console.log("worker event", event)
-            // if (event.data.type === "log") {
-            //     console.log("JS Function Output:", event.data.message);
-            //     setOutput((prev) => prev + "\n" + event.data.message);
-            // } else if (event.data.type === "result") {
-            //     setOutput((prev) => prev + "\nPython Result: " + event.data.data);
-            // } else if (event.data.type === "error") {
-            //     setOutput("Error: " + event.data.error);
-            // } else if (event.data.type === "input_request") {
-            //     setInputPrompt(event.data.prompt);
-            // }
-            if (event.data.type === "ready") {
-                setPyodideState({ready: true, executing: false})
-            }
-            if (event.data.type === "result" || event.data.type === "error") {
-                console.log("setting pyodide state executing false")
-                setPyodideState({ready: true, executing: false})
-            }
+        console.log("worker event", event)
+        // if (event.data.type === "log") {
+        //     console.log("JS Function Output:", event.data.message);
+        //     setOutput((prev) => prev + "\n" + event.data.message);
+        // } else if (event.data.type === "result") {
+        //     setOutput((prev) => prev + "\nPython Result: " + event.data.data);
+        // } else if (event.data.type === "error") {
+        //     setOutput("Error: " + event.data.error);
+        // } else if (event.data.type === "input_request") {
+        //     setInputPrompt(event.data.prompt);
+        // }
+        if (event.data.type === "ready") {
+            setPyodideState({ready: true, executing: false})
+        }
+        if (event.data.type === "result" || event.data.type === "error") {
+            console.log("setting pyodide state executing false")
+            setPyodideState({ready: true, executing: false})
+        }
+        if (event.data.type === "error") {
+            console.log("saving error")
+            setExecutionError(event.data.error)
+        }
     }
 
     useEffect(() => {
@@ -172,6 +178,7 @@ export default function Main({data, type}: Props) {
             code: editorViewRef.current.state.doc.toString()
         })
         setPyodideState({...pyodideState, executing: true})
+        setExecutionError("")
     }
 
     // TODO: add next and back buttons to this component since used by both teacher and student
@@ -196,8 +203,9 @@ export default function Main({data, type}: Props) {
                                 </Grid2>
                             </Box>
                         </Grid2>
-                        <Grid2 size={{xs: 6}}>
-                            <Terminal pyodideWorker={pyodideWorker} />
+                        <Grid2 size={{xs: 6}} position="relative">
+                            <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} />
+                            <DefaultErrorDisplay error={executionError} />
                         </Grid2>
                     </Grid2>
                 </Box>

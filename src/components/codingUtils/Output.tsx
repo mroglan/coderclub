@@ -5,18 +5,21 @@ import WorkerManager from "./WorkerManager";
 
 interface Props {
     pyodideWorker: WorkerManager|null;
+    pyodideState: {
+        ready: boolean;
+        executing: boolean;
+    }
 }
 
 
-export function Terminal({pyodideWorker}: Props) {
+export function Terminal({pyodideWorker, pyodideState}: Props) {
 
     const [output, setOutput] = useState<string[]>([])
 
     const listener = (event: MessageEvent) => {
         console.log("from antoher", event)
-        if (event.data.type === "log") {
-            // output.push(event.data.msg as string)
-            setOutput([...output, event.data.msg as string])
+        if (event.data.type === "print") {
+            setOutput((prev) => [...prev, event.data.msg as string])
         }
     }
     
@@ -29,11 +32,24 @@ export function Terminal({pyodideWorker}: Props) {
 
     }, [pyodideWorker])
 
+    useMemo(() => {
+        if (output.length === 0) return
+
+        if (pyodideState.executing) {
+            console.log("resetting output")
+            setOutput([])
+        }
+    }, [pyodideState])
+
     console.log('output', output)
 
     return (
         <Box>
-            terminal
+            {output.map((line, i) => (
+                <Box key={i}>
+                    {line}
+                </Box>
+            ))}
         </Box>
     )
 }
