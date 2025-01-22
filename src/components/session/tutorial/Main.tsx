@@ -143,10 +143,19 @@ export default function Main({data, type}: Props) {
         }
     }
 
+    const lastRunTime = useRef(new Date().getTime())    
+
     const runCode = async () => {
         // editor will include button to run code that will call this function. It will pause it's run code
         // button until this function finishes. This function will send an api request to update the student/teacher's
         // progress and will run the code with pyodide and display output.
+
+        const date = new Date().getTime()
+        if (Math.abs(date - lastRunTime.current) < 2000) {
+            console.log("ignoring run code as last run was less than 2 seconds ago")
+            return
+        }
+        lastRunTime.current = date
 
         if (!pyodideWorker) {
             console.log("How are we here!! There is no pyodide Worker!")
