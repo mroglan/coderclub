@@ -1,6 +1,6 @@
 import { C_Session } from "@/database/interfaces/Session";
 import { Box, Paper, Typography } from "@mui/material";
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { python } from "@codemirror/lang-python";
 import { EditorState } from "@codemirror/state";
@@ -15,11 +15,6 @@ interface DefaultEditorProps {
 
 
 export function DefaultEditor({originalCode, editorRef, editorViewRef}: DefaultEditorProps) {
-
-    // const editorRef = useRef<HTMLDivElement>(null);
-    // const editorViewRef = useRef<EditorView | null>(null);
-
-    const [localId, setlocalId] = useState("")
 
     useEffect(() => {
         if (editorRef.current && !editorViewRef.current) {

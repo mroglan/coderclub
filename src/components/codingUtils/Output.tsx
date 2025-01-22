@@ -9,10 +9,11 @@ interface Props {
         ready: boolean;
         executing: boolean;
     }
+    clearCount: number;
 }
 
 
-export function Terminal({pyodideWorker, pyodideState}: Props) {
+export function Terminal({pyodideWorker, pyodideState, clearCount}: Props) {
 
     const [output, setOutput] = useState<string[]>([])
 
@@ -40,6 +41,10 @@ export function Terminal({pyodideWorker, pyodideState}: Props) {
             setOutput([])
         }
     }, [pyodideState])
+
+    useMemo(() => {
+        setOutput([])
+    }, [clearCount])
 
     console.log('output', output)
 

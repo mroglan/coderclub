@@ -3,6 +3,7 @@ import MainHeader from "@/components/nav/MainHeader";
 import Main from "@/components/session/tutorial/Main";
 import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
 import { C_StudentTutorialProgress } from "@/database/interfaces/StudentTutorialProgress";
+import { C_Teacher } from "@/database/interfaces/Teacher";
 import { getStudentTutorialInfo } from "@/database/operations/student";
 import { getUserFromCtx, mustNotBeAuthenticated, StudentFromJWT } from "@/utils/auth";
 import { NoSsr } from "@mui/material";
@@ -73,7 +74,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
     }
 
     if (token?.type == "student") {
-        data.student = user
+        data.user = user
     }
 
     return {props: {

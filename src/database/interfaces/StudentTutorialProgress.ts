@@ -1,10 +1,11 @@
 import { S_Ref, C_Ref } from "./fauna";
 
 
-interface StudentTutorialProgressData {
+export interface StudentTutorialProgressData {
     sessionId: string;
     tutorialName: string;
-    studentId: string;
+    studentId: string; // this will either be an id or ""
+    teacherId: string; // this will either be an id or ""
     stepName: string;
     code: string;
 }

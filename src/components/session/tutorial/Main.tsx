@@ -3,17 +3,23 @@ import { DefaultErrorDisplay } from "@/components/codingUtils/ErrorDisplay";
 import { Terminal } from "@/components/codingUtils/Output";
 import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
-import { GreenPrimaryButton } from "@/components/misc/buttons";
+import { GreenPrimaryButton, PurplePrimaryButton } from "@/components/misc/buttons";
 import { C_SessionTutorial, TUTORIAL_SOLUTIONS, TUTORIAL_STEPS } from "@/database/interfaces/SessionTutorial";
-import { C_StudentTutorialProgress } from "@/database/interfaces/StudentTutorialProgress";
+import { C_StudentTutorialProgress, StudentTutorialProgressData } from "@/database/interfaces/StudentTutorialProgress";
 import { Props } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
-import { Box, Container, Grid2 } from "@mui/material";
+import { Box, Container, Grid2, Typography } from "@mui/material";
 import { useRouter } from "next/router";
+import Router from "next/router"
 import { useEffect, useMemo, useRef, useState } from "react";
+import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import axios from "axios";
 
 
 export default function Main({data, type}: Props) {
+
+    const [totalProgress, setTotalProgress] = useState(data.progress)
 
     const router = useRouter()
 
@@ -39,42 +45,9 @@ export default function Main({data, type}: Props) {
         executing: false,
     })
     const [executionError, setExecutionError] = useState("")
-
-    const configurePyodideWorker = (worker: Worker) => {
-        worker.onmessage = (event) => {
-            console.log("worker event", event)
-            // if (event.data.type === "log") {
-            //     console.log("JS Function Output:", event.data.message);
-            //     setOutput((prev) => prev + "\n" + event.data.message);
-            // } else if (event.data.type === "result") {
-            //     setOutput((prev) => prev + "\nPython Result: " + event.data.data);
-            // } else if (event.data.type === "error") {
-            //     setOutput("Error: " + event.data.error);
-            // } else if (event.data.type === "input_request") {
-            //     setInputPrompt(event.data.prompt);
-            // }
-            if (event.data.type === "ready") {
-                setPyodideState({ready: true, executing: false})
-            }
-            if (event.data.type === "result" || event.data.type === "error") {
-                console.log("setting pyodide state executing false")
-                setPyodideState({ready: true, executing: false})
-            }
-        };
-    }
+    const [clearCount, setClearCount] = useState(0)
 
     const pyodideListener = (event: MessageEvent) => {
-        console.log("worker event", event)
-        // if (event.data.type === "log") {
-        //     console.log("JS Function Output:", event.data.message);
-        //     setOutput((prev) => prev + "\n" + event.data.message);
-        // } else if (event.data.type === "result") {
-        //     setOutput((prev) => prev + "\nPython Result: " + event.data.data);
-        // } else if (event.data.type === "error") {
-        //     setOutput("Error: " + event.data.error);
-        // } else if (event.data.type === "input_request") {
-        //     setInputPrompt(event.data.prompt);
-        // }
         if (event.data.type === "ready") {
             setPyodideState({ready: true, executing: false})
         }
@@ -90,12 +63,6 @@ export default function Main({data, type}: Props) {
 
     useEffect(() => {
         if (pyodideWorker) return
-
-        // const worker = new Worker("/pyodide.js", {type: "module"})
-        // setPyodideWorker(worker)
-
-        // configurePyodideWorker(worker)
-
         const worker = new WorkerManager("/pyodide.js")
         worker.addListener(pyodideListener)
         setPyodideWorker(worker)
@@ -105,7 +72,7 @@ export default function Main({data, type}: Props) {
     const editorRef = useRef<HTMLDivElement>(null);
     const editorViewRef = useRef<EditorView>(null);
 
-    const [myCode, setMyCode] = useState({id: null, code: "", stepName: ""})
+    const [myCode, setMyCode] = useState({id: null, code: "", stepName: ""} as {id: string|null;code:string;stepName:string;})
     const [selectedTab, setSelectedTab] = useState("My Code")
 
     useMemo(() => {
@@ -113,7 +80,7 @@ export default function Main({data, type}: Props) {
 
         if (router.query.step === myCode.stepName) return
 
-        const prog = data.progress.find(p => p.data.stepName === router.query.step) 
+        const prog = totalProgress.find(p => p.data.stepName === router.query.step) 
         if (!prog) {
             setMyCode({
                 id: null,
@@ -121,16 +88,20 @@ export default function Main({data, type}: Props) {
                 stepName: router.query.step as string
             })
         } else {
-            return {
+            setMyCode({
                 id: prog.ref["@ref"].id,
                 code: prog.data.code,
                 stepName: prog.data.stepName
-            }
+            })
+        }
+        setClearCount(clearCount+1)
+        setSelectedTab("My Code")
+        if (editorViewRef.current) {
+            editorViewRef.current.dispatch({
+            changes: { from: 0, to: (editorViewRef as any).current.state.doc.length, insert: prog?.data.code || "" },
+        })
         }
     }, [router.query])
-
-    console.log("progress", myCode)
-    console.log("pyodideState", pyodideState)
 
     const changeTab = (tab: string) => {
         if (selectedTab == "My Code") {
@@ -152,6 +123,26 @@ export default function Main({data, type}: Props) {
         });
     }, [selectedTab])
 
+    const updateCodeProgress = async () => {
+
+        try {
+            await axios({
+                method: "POST",
+                url: `/api/session/${router.query.url_name}/tutorial/update-progress`,
+                data: {
+                    data: {
+                        sessionId: data.tutorial.data.sessionId,
+                        tutorialName: data.tutorial.data.name,
+                        stepName: myCode.stepName,
+                        code: (editorViewRef as any).current.state.doc.toString()
+                    }
+                }
+            })
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
     const runCode = async () => {
         // editor will include button to run code that will call this function. It will pause it's run code
         // button until this function finishes. This function will send an api request to update the student/teacher's
@@ -167,11 +158,11 @@ export default function Main({data, type}: Props) {
             return
         }
 
-        // TODO: SAVING CODE PROGRESS
-
         const adjScript = new ScriptAdjustments(editorViewRef.current.state.doc.toString()).output()
 
-        console.log("adj", adjScript)
+        if (selectedTab === "My Code") {
+            updateCodeProgress()
+        }
 
         pyodideWorker.postMessage({
             type: "execute",
@@ -181,11 +172,81 @@ export default function Main({data, type}: Props) {
         setExecutionError("")
     }
 
+    const saveProgressLocally = () => {
+        // TODO: eventually save this to localStorage as well and don't reload it when user refreshes page
+        const code = selectedTab === "My Code" ? (editorViewRef as any).current.state.doc.toString() : myCode.code
+        if (!totalProgress.find(p => p.data.stepName === myCode.stepName)) {
+            setTotalProgress([...totalProgress, {
+                ref: {
+                    "@ref": {
+                        id: myCode.id as any // this will be null
+                    }
+                },
+                data: {
+                    sessionId: data.tutorial.data.sessionId,
+                    tutorialName: data.tutorial.data.name,
+                    stepName: myCode.stepName,
+                    code
+                } as StudentTutorialProgressData
+            }])
+        } else {
+            const copy = totalProgress.map(p => {
+                if (p.data.stepName === myCode.stepName) {
+                    return {...p, code}
+                }
+                return p
+            }) 
+            setTotalProgress(copy)
+        }
+    }
+
+    const onBack = () => {
+        saveProgressLocally()
+        if (router.query.step === TUTORIAL_STEPS[data.tutorial.data.name][0]) {
+            if (confirm("Are you sure you want to leave the tutorial?")) {
+                Router.push("/")
+            }
+        } else {
+            const currIndex = TUTORIAL_STEPS[data.tutorial.data.name].indexOf(router.query.step as string)
+            router.push({
+                query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.data.name][currIndex-1]}
+            })
+        }
+    }
+
+    const onNext = () => {
+        saveProgressLocally()
+        if (router.query.step === TUTORIAL_STEPS[data.tutorial.data.name].at(-1)) {
+            router.push({
+                query: {...router.query, step: "review"},
+            }, undefined, {shallow: true})
+        } else {
+            const currIndex = TUTORIAL_STEPS[data.tutorial.data.name].indexOf(router.query.step as string)
+            router.push({
+                query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.data.name][currIndex+1]}
+            })
+        }
+    }
+
     // TODO: add next and back buttons to this component since used by both teacher and student
     return (
         <Box my={3}>
             <Container maxWidth="xl">
                 <Box mx={3}>
+                    <Box mb={3}>
+                        <Grid2 container justifyContent="space-between">
+                            <Grid2 minWidth={200}>
+                                <PurplePrimaryButton startIcon={<ArrowLeftIcon />} onClick={onBack}>
+                                    Back
+                                </PurplePrimaryButton>
+                            </Grid2>
+                            <Grid2>
+                                <PurplePrimaryButton endIcon={<ArrowRightIcon />} onClick={onNext}>
+                                    Next
+                                </PurplePrimaryButton>
+                            </Grid2>
+                        </Grid2>
+                    </Box>
                     <Grid2 container spacing={3}>
                         <Grid2 size={{xs: 6}}>
                             <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
@@ -204,7 +265,7 @@ export default function Main({data, type}: Props) {
                             </Box>
                         </Grid2>
                         <Grid2 size={{xs: 6}} position="relative">
-                            <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} />
+                            <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} clearCount={clearCount} />
                             <DefaultErrorDisplay error={executionError} />
                         </Grid2>
                     </Grid2>
