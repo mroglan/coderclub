@@ -1,5 +1,4 @@
 import { CreateSessionTutorialByTeacher, UpdateSessionTutorialByTeacher } from "@/database/operations/sessionTutorial";
-import { updateStudentTutorialProgress } from "@/database/operations/studentTutorialProgress";
 import { updateTutorialProgress } from "@/database/operations/tutorialProgress";
 import { verifyUser } from "@/utils/auth";
 import { NextApiRequest, NextApiResponse } from "next";

@@ -2,7 +2,6 @@ import MainFooter from "@/components/nav/MainFooter";
 import MainHeader from "@/components/nav/MainHeader";
 import Main from "@/components/session/tutorial/Main";
 import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
-import { C_StudentTutorialProgress } from "@/database/interfaces/StudentTutorialProgress";
 import { C_Teacher } from "@/database/interfaces/Teacher";
 import { C_TutorialProgress } from "@/database/interfaces/TutorialProgress";
 import { getStudentTutorialInfo } from "@/database/operations/student";
@@ -14,7 +13,6 @@ import Head from "next/head";
 
 interface TeacherData {
     tutorial: C_SessionTutorial;
-    // progress: C_StudentTutorialProgress[]; // this is just the teacher progress
     progress: C_TutorialProgress|null;
 }
 
@@ -22,7 +20,6 @@ interface TeacherData {
 interface StudentData {
     tutorial: C_SessionTutorial;
     progress: C_TutorialProgress|null;
-    // progress: C_StudentTutorialProgress[];
 }
 
 

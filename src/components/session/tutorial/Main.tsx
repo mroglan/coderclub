@@ -5,7 +5,6 @@ import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
 import { GreenPrimaryButton, PurplePrimaryButton } from "@/components/misc/buttons";
 import { C_SessionTutorial, TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
-import { C_StudentTutorialProgress, StudentTutorialProgressData } from "@/database/interfaces/StudentTutorialProgress";
 import { Props } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
 import { Box, Container, Grid2, Typography } from "@mui/material";
@@ -76,32 +75,13 @@ export default function Main({data, type}: Props) {
 
     const editorViewRef = useRef<EditorView>(null);
 
-    // const [myCode, setMyCode] = useState({id: null, code: "", stepName: ""} as {id: string|null;code:string;stepName:string;})
     const [selectedTab, setSelectedTab] = useState("My Code")
 
     useMemo(() => {
         if (!router.query.step) return
 
-        // if (router.query.step === myCode.stepName) return
-
-        // const prog = totalProgress.find(p => p.data.stepName === router.query.step) 
-        // if (!prog) {
-        //     setMyCode({
-        //         id: null,
-        //         code: "",
-        //         stepName: router.query.step as string
-        //     })
-        // } else {
-        //     setMyCode({
-        //         id: prog.ref["@ref"].id,
-        //         code: prog.data.code,
-        //         stepName: prog.data.stepName
-        //     })
-        // }
         const code = totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.data.name][router.query.step as string]
-        // if (!code) {
-        //     setTotalProgress({...totalProgress, code: {...totalProgress.code, [router.query.step as string]: code}})
-        // }
+
         setClearCount(clearCount+1)
         setSelectedTab("My Code")
         if (editorViewRef.current) {
@@ -114,7 +94,6 @@ export default function Main({data, type}: Props) {
     const changeTab = (tab: string) => {
         if (!editorViewRef.current) return
         if (selectedTab == "My Code") {
-            // setMyCode({...myCode, code: (editorViewRef as any).current.state.doc.toString()})
             setTotalProgress({
                 ...totalProgress,
                 code: {...totalProgress.code, [router.query.step as string]: editorViewRef.current.state.doc.toString()}
@@ -139,22 +118,6 @@ export default function Main({data, type}: Props) {
 
     const updateCodeProgress = async () => {
         if (!editorViewRef.current) return
-        // try {
-        //     await axios({
-        //         method: "POST",
-        //         url: `/api/session/${router.query.url_name}/tutorial/update-progress`,
-        //         data: {
-        //             data: {
-        //                 sessionId: data.tutorial.data.sessionId,
-        //                 tutorialName: data.tutorial.data.name,
-        //                 stepName: myCode.stepName,
-        //                 code: (editorViewRef as any).current.state.doc.toString()
-        //             }
-        //         }
-        //     })
-        // } catch (e) {
-        //     console.log(e)
-        // }
         console.log('updateCodeProgress')
         try {
             await axios({
@@ -175,10 +138,6 @@ export default function Main({data, type}: Props) {
     const lastRunTime = useRef(new Date().getTime())    
 
     const runCode = async () => {
-        // editor will include button to run code that will call this function. It will pause it's run code
-        // button until this function finishes. This function will send an api request to update the student/teacher's
-        // progress and will run the code with pyodide and display output.
-
         const date = new Date().getTime()
         if (Math.abs(date - lastRunTime.current) < 2000) {
             console.log("ignoring run code as last run was less than 2 seconds ago")
@@ -214,29 +173,6 @@ export default function Main({data, type}: Props) {
         // TODO: eventually save this to localStorage as well and don't reload it when user refreshes page
         if (selectedTab !== "My Code" || !editorViewRef.current) return
         const code = editorViewRef.current.state.doc.toString()
-        // if (!totalProgress.find(p => p.data.stepName === myCode.stepName)) {
-        //     setTotalProgress([...totalProgress, {
-        //         ref: {
-        //             "@ref": {
-        //                 id: myCode.id as any // this will be null
-        //             }
-        //         },
-        //         data: {
-        //             sessionId: data.tutorial.data.sessionId,
-        //             tutorialName: data.tutorial.data.name,
-        //             stepName: myCode.stepName,
-        //             code
-        //         } as StudentTutorialProgressData
-        //     }])
-        // } else {
-        //     const copy = totalProgress.map(p => {
-        //         if (p.data.stepName === myCode.stepName) {
-        //             return {...p, code}
-        //         }
-        //         return p
-        //     }) 
-        //     setTotalProgress(copy)
-        // }
         setTotalProgress({
             ...totalProgress,
             code: {...totalProgress.code, [router.query.step as string]: code}

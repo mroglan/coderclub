@@ -46,7 +46,7 @@ export function Terminal({pyodideWorker, pyodideState, clearCount}: Props) {
         setOutput([])
     }, [clearCount])
 
-    console.log('output', output)
+    console.log('clearCount', clearCount)
 
     return (
         <Box>
