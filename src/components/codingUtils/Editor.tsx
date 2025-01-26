@@ -9,12 +9,13 @@ import { basicSetup } from "codemirror";
 
 interface DefaultEditorProps {
     originalCode: string;
-    editorRef: RefObject<HTMLDivElement|null>;
     editorViewRef: RefObject<EditorView|null>;
 }
 
 
-export function DefaultEditor({originalCode, editorRef, editorViewRef}: DefaultEditorProps) {
+export function DefaultEditor({originalCode, editorViewRef}: DefaultEditorProps) {
+
+    const editorRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (editorRef.current && !editorViewRef.current) {

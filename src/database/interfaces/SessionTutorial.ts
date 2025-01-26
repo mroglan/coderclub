@@ -77,6 +77,14 @@ export const TUTORIAL_SOLUTIONS = {
 } as {[key: string]: {[key: string]: string}}
 
 
+export const TUTORIAL_TEMPLATES = {
+    "Hello World": {
+        "Say hello!": "",
+        "Challenge: Introduce yourself!": ""
+    }
+} as {[key: string]: {[key: string]: string}}
+
+
 interface SessionTutorialData {
     name: string;
     unlockSolutions: string[];

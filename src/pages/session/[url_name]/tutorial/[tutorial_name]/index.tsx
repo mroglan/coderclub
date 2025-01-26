@@ -4,6 +4,7 @@ import Main from "@/components/session/tutorial/Main";
 import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
 import { C_StudentTutorialProgress } from "@/database/interfaces/StudentTutorialProgress";
 import { C_Teacher } from "@/database/interfaces/Teacher";
+import { C_TutorialProgress } from "@/database/interfaces/TutorialProgress";
 import { getStudentTutorialInfo } from "@/database/operations/student";
 import { getUserFromCtx, mustNotBeAuthenticated, StudentFromJWT } from "@/utils/auth";
 import { NoSsr } from "@mui/material";
@@ -13,13 +14,15 @@ import Head from "next/head";
 
 interface TeacherData {
     tutorial: C_SessionTutorial;
-    progress: C_StudentTutorialProgress[]; // this is just the teacher progress
+    // progress: C_StudentTutorialProgress[]; // this is just the teacher progress
+    progress: C_TutorialProgress|null;
 }
 
 
 interface StudentData {
     tutorial: C_SessionTutorial;
-    progress: C_StudentTutorialProgress[];
+    progress: C_TutorialProgress|null;
+    // progress: C_StudentTutorialProgress[];
 }
 
 

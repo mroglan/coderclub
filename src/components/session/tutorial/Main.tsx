@@ -4,7 +4,7 @@ import { Terminal } from "@/components/codingUtils/Output";
 import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
 import { GreenPrimaryButton, PurplePrimaryButton } from "@/components/misc/buttons";
-import { C_SessionTutorial, TUTORIAL_SOLUTIONS, TUTORIAL_STEPS } from "@/database/interfaces/SessionTutorial";
+import { C_SessionTutorial, TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
 import { C_StudentTutorialProgress, StudentTutorialProgressData } from "@/database/interfaces/StudentTutorialProgress";
 import { Props } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
@@ -19,7 +19,12 @@ import axios from "axios";
 
 export default function Main({data, type}: Props) {
 
-    const [totalProgress, setTotalProgress] = useState(data.progress)
+    const [totalProgress, setTotalProgress] = useState(data.progress?.data || {
+        sessionId: data.tutorial.data.sessionId,
+        teacherId: type == "teacher" ? data.tutorial.data.teacherId : undefined,
+        studentId: type == "student" ? "": undefined,
+        code: {} as any
+    })
 
     const router = useRouter()
 
@@ -69,43 +74,51 @@ export default function Main({data, type}: Props) {
     }, [])
 
 
-    const editorRef = useRef<HTMLDivElement>(null);
     const editorViewRef = useRef<EditorView>(null);
 
-    const [myCode, setMyCode] = useState({id: null, code: "", stepName: ""} as {id: string|null;code:string;stepName:string;})
+    // const [myCode, setMyCode] = useState({id: null, code: "", stepName: ""} as {id: string|null;code:string;stepName:string;})
     const [selectedTab, setSelectedTab] = useState("My Code")
 
     useMemo(() => {
         if (!router.query.step) return
 
-        if (router.query.step === myCode.stepName) return
+        // if (router.query.step === myCode.stepName) return
 
-        const prog = totalProgress.find(p => p.data.stepName === router.query.step) 
-        if (!prog) {
-            setMyCode({
-                id: null,
-                code: "",
-                stepName: router.query.step as string
-            })
-        } else {
-            setMyCode({
-                id: prog.ref["@ref"].id,
-                code: prog.data.code,
-                stepName: prog.data.stepName
-            })
-        }
+        // const prog = totalProgress.find(p => p.data.stepName === router.query.step) 
+        // if (!prog) {
+        //     setMyCode({
+        //         id: null,
+        //         code: "",
+        //         stepName: router.query.step as string
+        //     })
+        // } else {
+        //     setMyCode({
+        //         id: prog.ref["@ref"].id,
+        //         code: prog.data.code,
+        //         stepName: prog.data.stepName
+        //     })
+        // }
+        const code = totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.data.name][router.query.step as string]
+        // if (!code) {
+        //     setTotalProgress({...totalProgress, code: {...totalProgress.code, [router.query.step as string]: code}})
+        // }
         setClearCount(clearCount+1)
         setSelectedTab("My Code")
         if (editorViewRef.current) {
             editorViewRef.current.dispatch({
-            changes: { from: 0, to: (editorViewRef as any).current.state.doc.length, insert: prog?.data.code || "" },
+            changes: { from: 0, to: (editorViewRef as any).current.state.doc.length, insert: code},
         })
         }
     }, [router.query])
 
     const changeTab = (tab: string) => {
+        if (!editorViewRef.current) return
         if (selectedTab == "My Code") {
-            setMyCode({...myCode, code: (editorViewRef as any).current.state.doc.toString()})
+            // setMyCode({...myCode, code: (editorViewRef as any).current.state.doc.toString()})
+            setTotalProgress({
+                ...totalProgress,
+                code: {...totalProgress.code, [router.query.step as string]: editorViewRef.current.state.doc.toString()}
+            })
         }
         setSelectedTab(tab)
     }
@@ -114,7 +127,8 @@ export default function Main({data, type}: Props) {
         if (!editorViewRef.current) return
         let newContent: any = ""
         if (selectedTab === "My Code") {
-            newContent = myCode.code
+            // newContent = myCode.code
+            newContent = totalProgress.code[router.query.step as string]
         } else if (selectedTab === "Solution") {
             newContent = TUTORIAL_SOLUTIONS[data.tutorial.data.name][router.query.step as string]
         }
@@ -124,18 +138,33 @@ export default function Main({data, type}: Props) {
     }, [selectedTab])
 
     const updateCodeProgress = async () => {
-
+        if (!editorViewRef.current) return
+        // try {
+        //     await axios({
+        //         method: "POST",
+        //         url: `/api/session/${router.query.url_name}/tutorial/update-progress`,
+        //         data: {
+        //             data: {
+        //                 sessionId: data.tutorial.data.sessionId,
+        //                 tutorialName: data.tutorial.data.name,
+        //                 stepName: myCode.stepName,
+        //                 code: (editorViewRef as any).current.state.doc.toString()
+        //             }
+        //         }
+        //     })
+        // } catch (e) {
+        //     console.log(e)
+        // }
+        console.log('updateCodeProgress')
         try {
             await axios({
                 method: "POST",
                 url: `/api/session/${router.query.url_name}/tutorial/update-progress`,
                 data: {
-                    data: {
-                        sessionId: data.tutorial.data.sessionId,
-                        tutorialName: data.tutorial.data.name,
-                        stepName: myCode.stepName,
-                        code: (editorViewRef as any).current.state.doc.toString()
-                    }
+                    sessionId: data.tutorial.data.sessionId,
+                    tutorialName: data.tutorial.data.name,
+                    stepName: router.query.step,
+                    code: editorViewRef.current.state.doc.toString()
                 }
             })
         } catch (e) {
@@ -183,30 +212,35 @@ export default function Main({data, type}: Props) {
 
     const saveProgressLocally = () => {
         // TODO: eventually save this to localStorage as well and don't reload it when user refreshes page
-        const code = selectedTab === "My Code" ? (editorViewRef as any).current.state.doc.toString() : myCode.code
-        if (!totalProgress.find(p => p.data.stepName === myCode.stepName)) {
-            setTotalProgress([...totalProgress, {
-                ref: {
-                    "@ref": {
-                        id: myCode.id as any // this will be null
-                    }
-                },
-                data: {
-                    sessionId: data.tutorial.data.sessionId,
-                    tutorialName: data.tutorial.data.name,
-                    stepName: myCode.stepName,
-                    code
-                } as StudentTutorialProgressData
-            }])
-        } else {
-            const copy = totalProgress.map(p => {
-                if (p.data.stepName === myCode.stepName) {
-                    return {...p, code}
-                }
-                return p
-            }) 
-            setTotalProgress(copy)
-        }
+        if (selectedTab !== "My Code" || !editorViewRef.current) return
+        const code = editorViewRef.current.state.doc.toString()
+        // if (!totalProgress.find(p => p.data.stepName === myCode.stepName)) {
+        //     setTotalProgress([...totalProgress, {
+        //         ref: {
+        //             "@ref": {
+        //                 id: myCode.id as any // this will be null
+        //             }
+        //         },
+        //         data: {
+        //             sessionId: data.tutorial.data.sessionId,
+        //             tutorialName: data.tutorial.data.name,
+        //             stepName: myCode.stepName,
+        //             code
+        //         } as StudentTutorialProgressData
+        //     }])
+        // } else {
+        //     const copy = totalProgress.map(p => {
+        //         if (p.data.stepName === myCode.stepName) {
+        //             return {...p, code}
+        //         }
+        //         return p
+        //     }) 
+        //     setTotalProgress(copy)
+        // }
+        setTotalProgress({
+            ...totalProgress,
+            code: {...totalProgress.code, [router.query.step as string]: code}
+        })
     }
 
     const onBack = () => {
@@ -259,7 +293,8 @@ export default function Main({data, type}: Props) {
                     <Grid2 container spacing={3}>
                         <Grid2 size={{xs: 6}}>
                             <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
-                            <DefaultEditor originalCode={myCode.code} editorRef={editorRef} editorViewRef={editorViewRef} />
+                            <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.data.name][router.query.step as string]}
+                                editorViewRef={editorViewRef} />
                             <Box mt={3}>
                                 <Grid2 container>
                                     <Grid2 minWidth={200}>
