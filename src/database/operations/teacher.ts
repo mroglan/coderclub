@@ -5,6 +5,7 @@ import { S_Teacher, S_TeacherData } from "../interfaces/Teacher"
 import { S_Session } from "../interfaces/Session"
 import { S_Student } from "../interfaces/Student"
 import { C_SessionTutorial, S_SessionTutorial } from "../interfaces/SessionTutorial"
+import { InnerQueries as SessionInnerQueries } from "./session"
 
 class InnerQueries {
 
@@ -85,4 +86,40 @@ export async function getTeacherSessionDashboardInfo(teacherId: string, url_name
         students: S_Student[];
         tutorials: S_SessionTutorial[];
     }
+}
+
+
+export async function getTeacherTutorialInfo(teacherId: string, sessionUrlName: string, tutorialName: string) {
+
+    return await client.query(
+        q.If(
+            SessionInnerQueries.existsSessionWithUrlName(sessionUrlName),
+            q.Let(
+                {
+                    session: q.Get(q.Match(q.Index('session_by_url_name'), sessionUrlName))
+                },
+                q.If(
+                    q.Equals(q.Select(["data", "teacherId"], q.Var("session")), teacherId),
+                    {
+                        tutorial: q.Get(q.Match(q.Index("sessionTutorial_by_sessionId_name"), [q.Select(["ref", "id"], q.Var("session")), tutorialName])),
+                        progress: q.If(
+                            q.Exists(q.Match(q.Index("tutorialProgress_by_sessionId_tutorialName_teacherId"), [q.Select(["ref", "id"], q.Var("session")), tutorialName, teacherId])),
+                            q.Get(q.Match(q.Index("tutorialProgress_by_sessionId_tutorialName_teacherId"), [q.Select(["ref", "id"], q.Var("session")), tutorialName, teacherId])),
+                            null
+                        ),
+                        students: q.Select("data", q.Map(
+                            q.Paginate(q.Match(q.Index("student_by_sessionId"), q.Select(["ref", "id"], q.Var("session")))),
+                            q.Lambda(
+                                "studentRef",
+                                q.Get(q.Var("studentRef"))
+                            )
+                        )),
+                        session: q.Var("session")
+                    },
+                    null
+                )
+            ),
+            null
+        )
+    )
 }

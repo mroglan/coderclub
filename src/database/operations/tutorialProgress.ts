@@ -88,3 +88,20 @@ export async function updateTutorialProgress(type: string, id: string, sessionId
         )
     )
 }
+
+
+export async function getStudentTutorialProgress(studentId: string, sessionId: string, tutorialName: string) {
+    return await client.query(
+        q.If(
+            q.Exists(q.Match(
+                q.Index("tutorialProgress_by_sessionId_tutorialName_studentId"), 
+                [sessionId, tutorialName, studentId]
+            )),
+            q.Get(q.Match(
+                q.Index("tutorialProgress_by_sessionId_tutorialName_studentId"), 
+                [sessionId, tutorialName, studentId]
+            )),
+            null
+        )
+    )
+}

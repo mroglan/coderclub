@@ -5,7 +5,7 @@ import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
 import { GreenPrimaryButton, PurplePrimaryButton } from "@/components/misc/buttons";
 import { C_SessionTutorial, TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
-import { Props } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
+import { Props, TeacherData } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
 import { Box, Container, Grid2, Typography } from "@mui/material";
 import { useRouter } from "next/router";
@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import axios from "axios";
+import { C_TutorialProgress } from "@/database/interfaces/TutorialProgress";
 
 
 export default function Main({data, type}: Props) {
@@ -24,6 +25,9 @@ export default function Main({data, type}: Props) {
         studentId: type == "student" ? "": undefined,
         code: {} as any
     })
+
+    const [studentCodeToShow, setStudentCodeToShow] = useState<C_TutorialProgress|null>(null)
+    const [loadingStudentCode, setLoadingStudentCode] = useState(false)
 
     const router = useRouter()
 
@@ -98,6 +102,9 @@ export default function Main({data, type}: Props) {
                 ...totalProgress,
                 code: {...totalProgress.code, [router.query.step as string]: editorViewRef.current.state.doc.toString()}
             })
+        } else if (selectedTab === "Student Code") {
+            console.log('set student code to null')
+            setStudentCodeToShow(null)
         }
         setSelectedTab(tab)
     }
@@ -106,15 +113,16 @@ export default function Main({data, type}: Props) {
         if (!editorViewRef.current) return
         let newContent: any = ""
         if (selectedTab === "My Code") {
-            // newContent = myCode.code
             newContent = totalProgress.code[router.query.step as string]
         } else if (selectedTab === "Solution") {
             newContent = TUTORIAL_SOLUTIONS[data.tutorial.data.name][router.query.step as string]
+        } else if (selectedTab === "Student Code") {
+            newContent = studentCodeToShow?.data.code[router.query.step as string] || "# No progress found!"
         }
         (editorViewRef as any).current.dispatch({
             changes: { from: 0, to: (editorViewRef as any).current.state.doc.length, insert: newContent },
         });
-    }, [selectedTab])
+    }, [selectedTab, studentCodeToShow])
 
     const updateCodeProgress = async () => {
         if (!editorViewRef.current) return
@@ -207,7 +215,33 @@ export default function Main({data, type}: Props) {
         }
     }
 
-    // TODO: add next and back buttons to this component since used by both teacher and student
+    const displayStudentCode = async (studentId: string) => {
+        if (loadingStudentCode) return
+
+        setLoadingStudentCode(true)
+
+        try {
+
+            const {data: {tutorialProgress}} = await axios({
+                method: "GET",
+                url: `/api/session/${router.query.url_name}/tutorial/student-progress?studentId=${studentId}&tutorialName=${data.tutorial.data.name}&sessionId=${data.tutorial.data.sessionId}`
+            })
+
+            if (!tutorialProgress) {
+                setStudentCodeToShow({
+                    data: {code: {}}
+                } as any)
+            } else {
+                setStudentCodeToShow(tutorialProgress)
+            }
+        } catch (e) {
+            console.log(e)
+        }
+        setLoadingStudentCode(false)
+    }
+
+    console.log('student code to show', studentCodeToShow)
+
     return (
         <Box my={3}>
             <Container maxWidth="xl">
@@ -229,8 +263,26 @@ export default function Main({data, type}: Props) {
                     <Grid2 container spacing={3}>
                         <Grid2 size={{xs: 6}}>
                             <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
-                            <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.data.name][router.query.step as string]}
-                                editorViewRef={editorViewRef} />
+                            <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}>
+                                <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.data.name][router.query.step as string]}
+                                    editorViewRef={editorViewRef} />
+                            </Box>
+                            {
+                                selectedTab === "Student Code" && !studentCodeToShow && <Box
+                                bgcolor="#fff" p={3}>
+                                    <Grid2 container spacing={3} justifyContent="space-around">
+                                        {(data as TeacherData).students.map(student => (
+                                            <Grid2 key={student.data.name} sx={{cursor: "pointer"}}>
+                                                <Box onClick={() => displayStudentCode(student.ref["@ref"].id)}>
+                                                    <Typography variant="body1" color="primary">
+                                                        {student.data.name}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid2>
+                                        ))}
+                                    </Grid2>
+                                </Box>
+                            }
                             <Box mt={3}>
                                 <Grid2 container>
                                     <Grid2 minWidth={200}>

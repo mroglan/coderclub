@@ -129,13 +129,6 @@ export async function getStudentTutorialInfo(studentJWT: StudentFromJWT, tutoria
             SessionTutorialInnerQueries.existsSessionTutorialWithNameAndSessionId(tutorialName, studentJWT.sessionId),
             {
                 tutorial: q.Get(q.Match(q.Index("sessionTutorial_by_sessionId_name"), [studentJWT.sessionId, tutorialName])),
-                // progress: q.Select("data", q.Map(
-                //     q.Paginate(q.Match(q.Index("studentTutorialProgress_by_sessionId_tutorialName_studentId"), [studentJWT.sessionId, tutorialName, studentJWT.id])),
-                //     q.Lambda(
-                //         "progressRef",
-                //         q.Get(q.Var("progressRef"))
-                //     )
-                // ))
                 progress: q.If(
                     q.Exists(q.Match(q.Index("tutorialProgress_by_sessionId_tutorialName_studentId"), [studentJWT.sessionId, tutorialName, studentJWT.id])),
                     q.Get(q.Match(q.Index("tutorialProgress_by_sessionId_tutorialName_studentId"), [studentJWT.sessionId, tutorialName, studentJWT.id])),
