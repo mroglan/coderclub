@@ -247,11 +247,16 @@ export default function Main({data, type}: Props) {
             <Container maxWidth="xl">
                 <Box mx={3}>
                     <Box mb={3}>
-                        <Grid2 container justifyContent="space-between">
+                        <Grid2 container justifyContent="space-between" alignItems="center" wrap="nowrap">
                             <Grid2 minWidth={200}>
                                 <PurplePrimaryButton startIcon={<ArrowLeftIcon />} onClick={onBack}>
                                     Back
                                 </PurplePrimaryButton>
+                            </Grid2>
+                            <Grid2>
+                                <Typography variant="h4">
+                                    {router.query.step}
+                                </Typography>
                             </Grid2>
                             <Grid2>
                                 <PurplePrimaryButton endIcon={<ArrowRightIcon />} onClick={onNext}>

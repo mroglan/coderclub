@@ -46,12 +46,12 @@ export function Terminal({pyodideWorker, pyodideState, clearCount}: Props) {
         setOutput([])
     }, [clearCount])
 
-    console.log('clearCount', clearCount)
+    console.log('output', output)
 
     return (
         <Box>
             {output.map((line, i) => (
-                <Box key={i}>
+                <Box key={i} whiteSpace="pre" fontSize="1.1rem">
                     {line}
                 </Box>
             ))}
