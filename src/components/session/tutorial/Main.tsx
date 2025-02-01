@@ -7,7 +7,7 @@ import { GreenPrimaryButton, PurplePrimaryButton } from "@/components/misc/butto
 import { TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
 import { Props, TeacherData } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
-import { Box, Container, Grid2, Typography } from "@mui/material";
+import { Box, Container, Grid2, IconButton, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import Router from "next/router"
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -15,9 +15,12 @@ import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import axios from "axios";
 import { TutorialProgress } from "@/database/interfaces/TutorialProgress";
+import CachedIcon from '@mui/icons-material/Cached';
 
 
 export default function Main({data, type}: Props) {
+
+    const [tutorial, setTutorial] = useState(data.tutorial)
 
     const [totalProgress, setTotalProgress] = useState(data.progress || {
         sessionId: data.tutorial.sessionId,
@@ -109,6 +112,29 @@ export default function Main({data, type}: Props) {
         setSelectedTab(tab)
     }
 
+    const [checkingForSolution, setCheckingForSolution] = useState(false)
+    const checkingForSolutionDelayTime = useRef(0)
+
+    const loadSolution = () => {
+        setCheckingForSolution(true)
+
+        setTimeout(() => {
+            // if students spam the button, they shall wait the longer!
+            checkingForSolutionDelayTime.current += 10000
+
+            const updateTutorial = async () => {
+                const {data: {tutorial}} = await axios({
+                    method: "GET",
+                    url: `/api/session/${router.query.url_name}/tutorial?tutorialId=${data.tutorial.id}`
+                })
+                
+                setTutorial(tutorial)
+                setCheckingForSolution(false)
+            }
+            updateTutorial()
+        }, checkingForSolutionDelayTime.current)
+    }
+
     useMemo(() => {
         if (!editorViewRef.current) return
         let newContent: any = ""
@@ -116,14 +142,18 @@ export default function Main({data, type}: Props) {
             newContent = totalProgress.code[router.query.step as string]
         } else if (selectedTab === "Solution") {
             newContent = TUTORIAL_SOLUTIONS[data.tutorial.name][router.query.step as string]
+            if (!tutorial.unlockSolutions.includes(router.query.step as string)) {
+                newContent = "# Solutions not unlocked yet!!!"
+            } else {
+                checkingForSolutionDelayTime.current = 0
+            }
         } else if (selectedTab === "Student Code") {
-            console.log('studentCodeToShow here', studentCodeToShow)
             newContent = studentCodeToShow?.code[router.query.step as string] || "# No progress found!"
         }
         (editorViewRef as any).current.dispatch({
             changes: { from: 0, to: (editorViewRef as any).current.state.doc.length, insert: newContent },
         });
-    }, [selectedTab, studentCodeToShow])
+    }, [selectedTab, studentCodeToShow, tutorial])
 
     const updateCodeProgress = async () => {
         if (!editorViewRef.current) return
@@ -269,7 +299,17 @@ export default function Main({data, type}: Props) {
                     <Grid2 container spacing={3}>
                         <Grid2 size={{xs: 6}}>
                             <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
-                            <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}>
+                            <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}
+                                position="relative">
+                                {
+                                    type == "student" && selectedTab == "Solution" && !tutorial.unlockSolutions.includes(router.query.step as string) 
+                                    && <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} zIndex={10}>
+                                        <IconButton color="success" sx={{animation: checkingForSolution ? "rotate 5s infinite linear": "none"}}
+                                        disabled={checkingForSolution} onClick={loadSolution}>
+                                            <CachedIcon sx={{fontSize: 100}} />
+                                        </IconButton>
+                                    </Box>
+                                }
                                 <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
                                     editorViewRef={editorViewRef} />
                             </Box>

@@ -26,3 +26,12 @@ export async function UpdateSessionTutorialByTeacher(id: string, teacherId: stri
         `
     )
 }
+
+
+export async function GetSessionTutorial(id: string) {
+    return await client.query(
+        fql`
+            sessionTutorial.byId(${id}) 
+        `
+    )
+}
