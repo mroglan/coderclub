@@ -1,4 +1,4 @@
-import { C_Student, S_Student } from "@/database/interfaces/Student";
+import { Student } from "@/database/interfaces/Student";
 import { getStudentFromNameAndSessionUrlName } from "@/database/operations/student";
 import { NextApiRequest, NextApiResponse } from "next";
 import jwt from 'jsonwebtoken'
@@ -15,9 +15,9 @@ export default async function JoinSession(req: NextApiRequest, res: NextApiRespo
 
         const url_name = sessionNameToUrlName(req.body.session)
 
-        const student: S_Student = await getStudentFromNameAndSessionUrlName(req.body.name, url_name)
+        const student: {data: Student} = await getStudentFromNameAndSessionUrlName(req.body.name, url_name)
 
-        if (!student) {
+        if (!student.data) {
             return res.status(409).json({msg: "We couldn't find your name in that session!"})
         }
 
@@ -27,7 +27,7 @@ export default async function JoinSession(req: NextApiRequest, res: NextApiRespo
                 sessionId: student.data.sessionId,
                 sessionUrlName: url_name, // useful for redirects
                 type: "student",
-                id: student.ref.id
+                id: student.data.id
             },
             process.env.JWT_TOKEN_SIGNATURE,
             {expiresIn: '24hr'}

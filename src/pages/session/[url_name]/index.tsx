@@ -85,13 +85,13 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
         return redirect
     }
 
+    data = data.data
     if (token?.type === "student") {
         (data as any).student = user
     } else {
-        data = data.data
         data.students = data.students.data
-        data.tutorials = data.tutorials.data
     }
+    data.tutorials = data.tutorials.data
     
 
     return {props: {

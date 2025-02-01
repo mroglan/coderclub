@@ -109,6 +109,24 @@ export async function updateTutorialProgress(type: string, id: string, sessionId
                 }
             `
         )
+    } else if (type == "student") {
+        return await client.query(
+            fql`
+                let progress = tutorialProgress.studentProgress(${sessionId}, ${tutorialName}, ${id}).first()
+                if (progress == null) {
+                    tutorialProgress.create({
+                        sessionId: ${sessionId} ,
+                        tutorialName: ${tutorialName},
+                        studentId: ${id},
+                        code: ${codeBlock}
+                    }) 
+                } else {
+                    progress!.update({
+                        code: ${codeBlock} 
+                    })
+                }
+            `
+        )
     }
 }
 

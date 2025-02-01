@@ -1,7 +1,6 @@
 import Main from "@/components/home/Main";
 import MainFooter from "@/components/nav/MainFooter";
 import MainHeader from "@/components/nav/MainHeader";
-import { C_Teacher } from "@/database/interfaces/Teacher";
 import { getUserFromCtx, mustNotBeAuthenticated } from "@/utils/auth";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import Head from "next/head";

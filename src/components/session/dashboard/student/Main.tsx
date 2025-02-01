@@ -1,13 +1,13 @@
-import { C_Session } from "@/database/interfaces/Session";
-import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
+import { MySession } from "@/database/interfaces/Session";
+import { SessionTutorial } from "@/database/interfaces/SessionTutorial";
 import { StudentFromJWT } from "@/utils/auth";
 import { Box, Container, Grid2, Paper, Typography } from "@mui/material";
 import Link from "next/link";
 
 
 interface Props {
-    session: C_Session;
-    tutorials: C_SessionTutorial[];
+    session: MySession;
+    tutorials: SessionTutorial[];
     student: StudentFromJWT;
 }
 
@@ -22,7 +22,7 @@ export default function StudentMain({session, tutorials, student}: Props) {
                 <Box mx={1}>
                     <Box mb={2}>
                         <Typography variant="h4">
-                            {session.data.name}
+                            {session.name}
                         </Typography>
                     </Box>
                     <Grid2 container>
@@ -32,14 +32,14 @@ export default function StudentMain({session, tutorials, student}: Props) {
                         <Grid2 flex={1}>
                             <Box>
                                 {tutorials.map(tutorial => (
-                                    <Box my={2} key={tutorial.data.name}>
+                                    <Box my={2} key={tutorial.name}>
                                         <Link href="/session/{url_name}/tutorial/{tutorial_name}"
-                                            as={`/session/${session.data.url_name}/tutorial/${tutorial.data.name}`}>
+                                            as={`/session/${session.url_name}/tutorial/${tutorial.name}`}>
                                             <Paper elevation={5}>
                                                 <Box p={3}>
                                                     <Box mb={3}>
                                                         <Typography variant="h3" color="primary">
-                                                            {tutorial.data.name} 
+                                                            {tutorial.name} 
                                                         </Typography>
                                                     </Box>
                                                     <Box>

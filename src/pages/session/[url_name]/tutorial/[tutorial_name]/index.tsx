@@ -82,10 +82,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
 
         console.log('query data', data)
 
+        data = data.data
         if (token?.type == "student") {
             data.user = user
         } else {
-            data = data.data
             data.students = data.students.data
         }
 
