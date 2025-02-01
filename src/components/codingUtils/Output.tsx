@@ -10,10 +10,11 @@ interface Props {
         executing: boolean;
     }
     clearCount: number;
+    height?: number;
 }
 
 
-export function Terminal({pyodideWorker, pyodideState, clearCount}: Props) {
+export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Props) {
 
     const [output, setOutput] = useState<string[]>([])
 
@@ -49,9 +50,9 @@ export function Terminal({pyodideWorker, pyodideState, clearCount}: Props) {
     console.log('output', output)
 
     return (
-        <Box>
+        <Box height={height || "500px"} border="1px solid #000" p={1} overflow="scroll">
             {output.map((line, i) => (
-                <Box key={i} whiteSpace="pre" fontSize="1.1rem">
+                <Box key={i} whiteSpace="pre" fontSize="1.3rem">
                     {line}
                 </Box>
             ))}

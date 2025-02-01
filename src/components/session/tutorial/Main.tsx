@@ -343,8 +343,10 @@ export default function Main({data, type}: Props) {
                             </Box>
                         </Grid2>
                         <Grid2 size={{xs: 6}} position="relative">
-                            <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} clearCount={clearCount} />
-                            <DefaultErrorDisplay error={executionError} />
+                            <Box mt={3}>
+                                <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} clearCount={clearCount} height={540} />
+                                <DefaultErrorDisplay error={executionError} />
+                            </Box>
                         </Grid2>
                     </Grid2>
                 </Box>
