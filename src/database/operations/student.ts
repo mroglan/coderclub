@@ -1,5 +1,6 @@
 import client from "../fauna"
 import { Expr, query as q } from "faunadb"
+import { fql } from "fauna"
 import { InnerQueries as SessionInnerQueries } from "./session";
 import { InnerQueries as SessionTutorialInnerQueries } from "./sessionTutorial"
 import { S_Student } from "../interfaces/Student";
@@ -9,6 +10,7 @@ import { S_SessionTutorial } from "../interfaces/SessionTutorial";
 
 interface CreateStudentData {
     name: string;
+    sessionId: string;
 }
 
 
@@ -41,27 +43,46 @@ export class InnerQueries {
 
 export async function CreateStudentByTeacher(teacherId: string, session_url_name: string, data: CreateStudentData) {
 
+    // return await client.query(
+    //     InnerQueries.sessionWithTeacherValidatedWrapper(
+    //         teacherId, 
+    //         session_url_name,
+    //         q.Create(
+    //             q.Collection("student"),
+    //             {data: {...data, sessionId: q.Select(["ref", "id"], q.Var("session"))}}
+    //         )
+    //     )
+    // ) as S_Student
+
+    // TODO: add back validation that I removed during fauna's stupid decomission
     return await client.query(
-        InnerQueries.sessionWithTeacherValidatedWrapper(
-            teacherId, 
-            session_url_name,
-            q.Create(
-                q.Collection("student"),
-                {data: {...data, sessionId: q.Select(["ref", "id"], q.Var("session"))}}
-            )
-        )
-    ) as S_Student
+        fql`
+            student.create({
+                name: ${data.name},
+                sessionId: ${data.sessionId} 
+            }) 
+        `
+    )
+
 }
 
 
 export async function RemoveStudentByTeacher(teacherId: string, session_url_name: string, studentId: string) {
 
+    // return await client.query(
+    //     InnerQueries.sessionWithTeacherValidatedWrapper(
+    //         teacherId,
+    //         session_url_name,
+    //         q.Delete(q.Ref(q.Collection("student"), studentId))
+    //     )
+    // )
+    
+
+    // TODO: add back validation that I removed during fauna's stupid decomission
     return await client.query(
-        InnerQueries.sessionWithTeacherValidatedWrapper(
-            teacherId,
-            session_url_name,
-            q.Delete(q.Ref(q.Collection("student"), studentId))
-        )
+        fql`
+            student.byId(${studentId})!.delete()
+        `
     )
 }
 

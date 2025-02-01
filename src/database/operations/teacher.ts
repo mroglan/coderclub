@@ -65,42 +65,58 @@ export async function getTeacher(id: string) {
 
 export async function getTeacherSessionDashboardInfo(teacherId: string, url_name: string) {
 
+    // return await client.query(
+    //     q.If(
+    //         q.Exists(q.Match(q.Index("session_by_url_name"), url_name)),
+    //         q.Let(
+    //             {
+    //                 session: q.Get(q.Match(q.Index("session_by_url_name"), url_name))
+    //             },
+    //             q.If(
+    //                 q.Equals(q.Select(["data", "teacherId"], q.Var("session")), teacherId),
+    //                 {
+    //                     session: q.Var("session"),
+    //                     students: q.Select("data", q.Map(
+    //                         q.Paginate(q.Match(q.Index("student_by_sessionId"), q.Select(["ref", "id"], q.Var("session")))),
+    //                         q.Lambda(
+    //                             "studentRef",
+    //                             q.Get(q.Var("studentRef"))
+    //                         )
+    //                     )),
+    //                     tutorials: q.Select("data", q.Map(
+    //                         q.Paginate(q.Match(q.Index("sessionTutorial_by_sessionId"), q.Select(["ref", "id"], q.Var("session")))),
+    //                         q.Lambda(
+    //                             "tutorialRef",
+    //                             q.Get(q.Var("tutorialRef"))
+    //                         )
+    //                     ))
+    //                 },
+    //                 null
+    //             )
+    //         ),
+    //         null
+    //     )
+    // ) as {
+    //     session: S_Session;
+    //     students: S_Student[];
+    //     tutorials: S_SessionTutorial[];
+    // }
+
     return await client.query(
-        q.If(
-            q.Exists(q.Match(q.Index("session_by_url_name"), url_name)),
-            q.Let(
+        fql`
+            let s = tSession.byUrlName(${url_name}).first()
+            let id = s!.id.toString()
+            if (s!.teacherId == ${teacherId}) {
+                let students = student.bySessionId(id).pageSize(30)
+                let tutorials = sessionTutorial.bySessionId(id)
                 {
-                    session: q.Get(q.Match(q.Index("session_by_url_name"), url_name))
-                },
-                q.If(
-                    q.Equals(q.Select(["data", "teacherId"], q.Var("session")), teacherId),
-                    {
-                        session: q.Var("session"),
-                        students: q.Select("data", q.Map(
-                            q.Paginate(q.Match(q.Index("student_by_sessionId"), q.Select(["ref", "id"], q.Var("session")))),
-                            q.Lambda(
-                                "studentRef",
-                                q.Get(q.Var("studentRef"))
-                            )
-                        )),
-                        tutorials: q.Select("data", q.Map(
-                            q.Paginate(q.Match(q.Index("sessionTutorial_by_sessionId"), q.Select(["ref", "id"], q.Var("session")))),
-                            q.Lambda(
-                                "tutorialRef",
-                                q.Get(q.Var("tutorialRef"))
-                            )
-                        ))
-                    },
-                    null
-                )
-            ),
-            null
-        )
-    ) as {
-        session: S_Session;
-        students: S_Student[];
-        tutorials: S_SessionTutorial[];
-    }
+                    "session": s,
+                    "students": students,
+                    "tutorials": tutorials
+                }
+            }
+        `
+    )
 }
 
 

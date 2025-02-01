@@ -169,7 +169,8 @@ print('My full name is ' + full_name + '.')
 } as {[key: string]: {[key: string]: string}}
 
 
-interface SessionTutorialData {
+export interface SessionTutorial {
+    id: string;
     name: string;
     unlockSolutions: string[];
     sessionId: string;
@@ -177,13 +178,13 @@ interface SessionTutorialData {
 }
 
 
-export interface S_SessionTutorial {
-    ref: S_Ref;
-    data: SessionTutorialData;
-}
+// export interface S_SessionTutorial {
+//     ref: S_Ref;
+//     data: SessionTutorialData;
+// }
 
 
-export interface C_SessionTutorial {
-    ref: C_Ref;
-    data: SessionTutorialData;
-}
+// export interface C_SessionTutorial {
+//     ref: C_Ref;
+//     data: SessionTutorialData;
+// }

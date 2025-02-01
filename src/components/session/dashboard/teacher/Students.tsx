@@ -1,7 +1,7 @@
 import FormikTextField from "@/components/formik/TextField";
 import { PurplePrimaryButton } from "@/components/misc/buttons";
-import { C_Session } from "@/database/interfaces/Session";
-import { C_Student } from "@/database/interfaces/Student";
+import { MySession } from "@/database/interfaces/Session";
+import { Student } from "@/database/interfaces/Student";
 import { Box, FormGroup, Grid2, IconButton, Typography } from "@mui/material";
 import axios from "axios";
 import { Form, Formik, FormikHelpers } from "formik";
@@ -10,9 +10,9 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 
 interface Props {
-    session: C_Session;
-    students: C_Student[];
-    setStudents: Dispatch<SetStateAction<C_Student[]>>
+    session: MySession;
+    students: Student[];
+    setStudents: Dispatch<SetStateAction<Student[]>>
 }
 
 
@@ -31,7 +31,7 @@ export default function Students({session, students, setStudents}: Props) {
 
         values.name = values.name.trim()
 
-        if (students.map(s => s.data.name.toLowerCase()).includes(values.name)) {
+        if (students.map(s => s.name.toLowerCase()).includes(values.name)) {
             actions.setFieldError("name", "Name already in session")
             return actions.setSubmitting(false)
         }
@@ -40,13 +40,16 @@ export default function Students({session, students, setStudents}: Props) {
 
             const {data} = await axios({
                 method: "POST",
-                url: `/api/session/${session.data.url_name}/student/add`,
-                data: values
+                url: `/api/session/${session.url_name}/student/add`,
+                data: {
+                    name: values.name,
+                    sessionId: session.id
+                }
             })
 
             actions.setFieldValue("name", "")
 
-            setStudents([...students, data.student])
+            setStudents([...students, data.student.data])
         } catch (e) {
             actions.setFieldError("name", (e as any).response?.data?.msg)
             actions.setSubmitting(false)
@@ -61,12 +64,12 @@ export default function Students({session, students, setStudents}: Props) {
 
             await axios({
                 method: "POST",
-                url: `/api/session/${session.data.url_name}/student/remove`,
+                url: `/api/session/${session.url_name}/student/remove`,
                 data: {studentId}
             })
 
             setDeleting(false)
-            setStudents(students.filter(s => s.ref["@ref"].id != studentId))
+            setStudents(students.filter(s => s.id != studentId))
         } catch (e) {
             console.log(e)
             setDeleting(false)
@@ -82,15 +85,15 @@ export default function Students({session, students, setStudents}: Props) {
             </Box>
             <Box mb={2}>
                 {students.map(student => (
-                    <Box key={student.data.name} my={1}>
+                    <Box key={student.name} my={1}>
                         <Grid2 container alignItems="center">
                             <Grid2 flex={1}>
                                 <Typography variant="body1">
-                                    {student.data.name}
+                                    {student.name}
                                 </Typography>
                             </Grid2>
                             <Grid2>
-                                <IconButton color="primary" disabled={deleting} onClick={() => removeStudent(student.ref["@ref"].id)}>
+                                <IconButton color="primary" disabled={deleting} onClick={() => removeStudent(student.id)}>
                                     <DeleteOutlineIcon /> 
                                 </IconButton>
                             </Grid2>

@@ -16,7 +16,8 @@ export default verifyUser(async function AddStudent(req: NextApiRequest, res: Ne
         }
 
         const student = await CreateStudentByTeacher(req.body.jwtUser.id, req.query.url_name as string, {
-            name: req.body.name
+            name: req.body.name,
+            sessionId: req.body.sessionId
         })
 
         if (!student) {

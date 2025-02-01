@@ -2,10 +2,10 @@ import MainFooter from "@/components/nav/MainFooter";
 import MainHeader from "@/components/nav/MainHeader";
 import StudentMain from "@/components/session/dashboard/student/Main";
 import TeacherMain from "@/components/session/dashboard/teacher/Main";
-import { C_Session } from "@/database/interfaces/Session";
-import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
-import { C_Student } from "@/database/interfaces/Student";
-import { C_Teacher } from "@/database/interfaces/Teacher";
+import { MySession } from "@/database/interfaces/Session";
+import { SessionTutorial } from "@/database/interfaces/SessionTutorial";
+import { Student } from "@/database/interfaces/Student";
+import { Teacher } from "@/database/interfaces/Teacher";
 import { getStudentSessionDashboardInfo } from "@/database/operations/student";
 import { getTeacherSessionDashboardInfo } from "@/database/operations/teacher";
 import { getUserFromCtx, mustNotBeAuthenticated, StudentFromJWT } from "@/utils/auth";
@@ -14,15 +14,15 @@ import Head from "next/head";
 
 
 export interface TeacherData {
-    session: C_Session;
-    students: C_Student[];
-    tutorials: C_SessionTutorial[];
+    session: MySession;
+    students: Student[];
+    tutorials: SessionTutorial[];
 }
 
 
 interface StudentData {
-    session: C_Session;
-    tutorials: C_SessionTutorial[];
+    session: MySession;
+    tutorials: SessionTutorial[];
     student: StudentFromJWT;
 }
 
@@ -40,7 +40,7 @@ export default function Session({data, type}: Props) {
     return (
         <>
             <Head>
-                <title>{data.session.data.name} | {type} View</title>
+                <title>{data.session.name} | {type} View</title>
             </Head>
             <div className="root-header-footer">
                 <MainHeader loggedIn />
@@ -66,12 +66,14 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
         return redirect
     }
 
-    let data = null
+    let data: any = null
     if (token?.type == "teacher") {
-        data = await getTeacherSessionDashboardInfo((user as any)?.ref.id as string, ctx.query.url_name as string)
+        data = await getTeacherSessionDashboardInfo((user as any)?.id as string, ctx.query.url_name as string)
     } else {
         data = await getStudentSessionDashboardInfo(user as StudentFromJWT, ctx.query.url_name as string)
     }
+
+    console.log('the query data', data)
 
     if (!data) {
         // most likely a teacher or student is going to a session they do not have access to
@@ -85,6 +87,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
 
     if (token?.type === "student") {
         (data as any).student = user
+    } else {
+        data = data.data
+        data.students = data.students.data
+        data.tutorials = data.tutorials.data
     }
     
 
