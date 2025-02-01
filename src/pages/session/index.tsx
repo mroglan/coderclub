@@ -3,19 +3,21 @@ import Main from "@/components/session/index/Main"
 import Head from "next/head"
 import { GetServerSideProps, GetServerSidePropsContext } from "next"
 import { getUserFromCtx, mustNotBeAuthenticated } from "@/utils/auth"
-import { C_Teacher } from "@/database/interfaces/Teacher"
+import { Teacher } from "@/database/interfaces/Teacher"
 import { getSessionsFromTeacherId } from "@/database/operations/session"
-import { C_Session } from "@/database/interfaces/Session"
+import { MySession } from "@/database/interfaces/Session"
 import MainFooter from "@/components/nav/MainFooter"
 
 
 interface Props {
-    user: C_Teacher;
-    sessions: C_Session[];
+    user: Teacher;
+    sessions: MySession[];
 }
 
 
 export default function Session({user, sessions}: Props) {
+
+    console.log('sessions', sessions)
 
     return (
         <>
@@ -40,10 +42,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
         return redirect
     }
 
-    const sessions = await getSessionsFromTeacherId(user?.ref.id as string)
+    const sessions = await getSessionsFromTeacherId((user as any).id as string)
 
     return {props: {
         user: JSON.parse(JSON.stringify(user)),
-        sessions: JSON.parse(JSON.stringify(sessions.data))
+        sessions: JSON.parse(JSON.stringify(sessions.data.data))
     }}
 }

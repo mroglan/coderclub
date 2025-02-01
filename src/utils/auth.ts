@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 import axios from "axios";
 import Router from "next/router"
 
-import { S_Teacher } from "../database/interfaces/Teacher"
+import { Teacher } from "../database/interfaces/Teacher"
 import { getTeacher } from "@/database/operations/teacher";
 
 
@@ -16,7 +16,7 @@ export interface StudentFromJWT {
 }
 
 
-type User = S_Teacher | StudentFromJWT;
+type User = Teacher | StudentFromJWT;
 
 interface AuthToken {
     id: string;
@@ -73,7 +73,7 @@ export async function getUserFromCtx(ctx: GetServerSidePropsContext, disallowed?
             }
         }
 
-        const user: User = token.type == "teacher" ? await getTeacher(token.id) : {
+        const user: User = token.type == "teacher" ? (await getTeacher(token.id)).data : {
             id: token.id,
             sessionId: token.sessionId,
             sessionUrlName: token.sessionUrlName,

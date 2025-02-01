@@ -3,14 +3,14 @@ import { useState } from "react";
 
 import { PurplePrimaryButton } from "@/components/misc/buttons"
 import { PrimaryLink } from "@/components/misc/links";
-import { C_Teacher } from "@/database/interfaces/Teacher"
+import { Teacher } from "@/database/interfaces/Teacher"
 import { CreateDialog } from "./CreateDialog";
-import { C_Session } from "@/database/interfaces/Session";
+import { MySession } from "@/database/interfaces/Session";
 
 
 interface Props {
-    user: C_Teacher;
-    sessions: C_Session[];
+    user: Teacher;
+    sessions: MySession[];
 }
 
 
@@ -37,9 +37,9 @@ export default function Main({user, sessions}: Props) {
             <CreateDialog open={open} onClose={closeCreateDialog} />
             <Box mt={3}>
                 {sessions.map(session => (
-                    <Box my={1} key={session.ref["@ref"].id}>
-                        <PrimaryLink href="/session/{name}" as={`/session/${session.data.url_name}`}>
-                            {session.data.name} 
+                    <Box my={1} key={session.id}>
+                        <PrimaryLink href="/session/{name}" as={`/session/${session.url_name}`}>
+                            {session.name} 
                         </PrimaryLink>
                     </Box>
                 ))}
