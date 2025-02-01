@@ -1,6 +1,5 @@
 import FormikTextField from "@/components/formik/TextField";
 import { PurplePrimaryButton } from "@/components/misc/buttons";
-import { C_Teacher } from "@/database/interfaces/Teacher";
 import { Box, Dialog, DialogContent, FormGroup, Typography } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import { Form, Formik, FormikHelpers } from "formik";

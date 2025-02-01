@@ -1,5 +1,3 @@
-import { S_Ref, C_Ref } from "./fauna";
-
 
 export interface TutorialProgress {
     id: string;
@@ -9,15 +7,3 @@ export interface TutorialProgress {
     teacherId?: string; // this will either be an id or ""
     code: {[stepName: string]: string};
 }
-
-
-// export interface S_TutorialProgress {
-//     ref: S_Ref;
-//     data: TutorialProgressData;
-// }
-
-
-// export interface C_TutorialProgress {
-//     ref: C_Ref;
-//     data: TutorialProgressData;
-// }

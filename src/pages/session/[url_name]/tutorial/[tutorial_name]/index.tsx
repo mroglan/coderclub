@@ -22,8 +22,8 @@ export interface TeacherData {
 
 
 interface StudentData {
-    tutorial: C_SessionTutorial;
-    progress: C_TutorialProgress|null;
+    tutorial: SessionTutorial;
+    progress: TutorialProgress|null;
 }
 
 

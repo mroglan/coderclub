@@ -1,5 +1,3 @@
-import { S_Ref, C_Ref } from "./fauna";
-
 
 export const TUTORIAL_NAMES = [
     "Hello World",
@@ -176,15 +174,3 @@ export interface SessionTutorial {
     sessionId: string;
     teacherId: string;
 }
-
-
-// export interface S_SessionTutorial {
-//     ref: S_Ref;
-//     data: SessionTutorialData;
-// }
-
-
-// export interface C_SessionTutorial {
-//     ref: C_Ref;
-//     data: SessionTutorialData;
-// }
