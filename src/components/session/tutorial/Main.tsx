@@ -3,7 +3,7 @@ import { DefaultErrorDisplay } from "@/components/codingUtils/ErrorDisplay";
 import { Terminal } from "@/components/codingUtils/Output";
 import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
-import { GreenPrimaryButton, PurplePrimaryButton } from "@/components/misc/buttons";
+import { GreenPrimaryButton, PurplePrimaryButton, RedPrimaryButton } from "@/components/misc/buttons";
 import { TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
 import { Props, TeacherData } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
@@ -72,11 +72,15 @@ export default function Main({data, type}: Props) {
         }
     }
 
-    useEffect(() => {
-        if (pyodideWorker) return
+    const setupPyodide = () => {
         const worker = new WorkerManager("/pyodide.js")
         worker.addListener(pyodideListener)
         setPyodideWorker(worker)
+    }
+
+    useEffect(() => {
+        if (pyodideWorker) return
+        setupPyodide()
     }, [])
 
 
@@ -208,6 +212,13 @@ export default function Main({data, type}: Props) {
         setExecutionError("")
     }
 
+    const cancelCode = async () => {
+        pyodideWorker.terminate()
+        setPyodideState({ready: false, executing: false})
+        setupPyodide()
+    }
+
+
     const saveProgressLocally = () => {
         // TODO: eventually save this to localStorage as well and don't reload it when user refreshes page
         if (selectedTab !== "My Code" || !editorViewRef.current) return
@@ -330,13 +341,21 @@ export default function Main({data, type}: Props) {
                                 </Box>
                             }
                             <Box mt={3}>
-                                <Grid2 container>
+                                <Grid2 container spacing={3}>
                                     <Grid2 minWidth={200}>
                                         <Box>
                                             <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
                                                 onClick={() => runCode()}>
                                                 Run Code
                                             </GreenPrimaryButton>
+                                        </Box>
+                                    </Grid2>
+                                    <Grid2 minWidth={200}>
+                                        <Box>
+                                            <RedPrimaryButton fullWidth disabled={!pyodideState.executing || !pyodideState.ready}
+                                            onClick={() => cancelCode()}>
+                                                Cancel Run
+                                            </RedPrimaryButton>
                                         </Box>
                                     </Grid2>
                                 </Grid2>

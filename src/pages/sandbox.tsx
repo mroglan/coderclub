@@ -3,6 +3,7 @@ import MainHeader from "@/components/nav/MainHeader";
 // import Main from "@/components/sandbox/Main2";
 import Main from "@/components/sandbox/Main";
 import { mustNotBeAuthenticated } from "@/utils/auth";
+import { NoSsr } from "@mui/material";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { parseCookies } from "nookies";
@@ -22,7 +23,9 @@ export default function Sandbox({isLoggedIn}: Props) {
             </Head> 
             <div className="root-header-footer">
                 <MainHeader loggedIn={isLoggedIn} />
-                <Main />
+                <NoSsr>
+                    <Main />
+                </NoSsr>
                 <MainFooter />
             </div>
         </>

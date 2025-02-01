@@ -29,12 +29,6 @@ loadPyodideInstance()
 
 
 self.onmessage = async (event) => {
-    // probably not needed since we just call worker.terminate()
-    // if (event.data.type === "stop") {
-    //     self.close()
-    //     return
-    // }
-
     if (event.data.type === "input_response") {
         if (self.inputResolver) {
             self.inputResolver(event.data.value);

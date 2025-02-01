@@ -14,6 +14,10 @@ export const theme = createTheme({
         success: {
             main: "hsl(131, 83%, 45%)",
             dark: "hsl(131, 83%, 32%)",
+        },
+        error: {
+            main: "hsl(355, 83%, 45%)",
+            dark: "hsl(355, 83%, 32%)",
         }
     }
 })

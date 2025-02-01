@@ -31,3 +31,19 @@ export const GreenPrimaryButton = styled(Button)(({theme}) => ({
         opacity: 0.6
     }
 }))
+
+
+export const RedPrimaryButton = styled(Button)(({theme}) => ({
+    background: theme.palette.error.main,
+    color: '#fff',
+    borderRadius: theme.spacing(1),
+    padding: `${theme.spacing(2)} ${theme.spacing(3)}`,
+    transition: 'background 300ms',
+    '&:hover': {
+        background: theme.palette.error.dark
+    },
+    '&.Mui-disabled': {
+        color: theme.palette.text.secondary,
+        opacity: 0.6
+    }
+}))

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { Terminal } from "../codingUtils/Output";
 import WorkerManager from "../codingUtils/WorkerManager";
-import { GreenPrimaryButton } from "../misc/buttons";
+import { GreenPrimaryButton, RedPrimaryButton } from "../misc/buttons";
 import { ScriptAdjustments } from "../codingUtils/scriptAdjustments";
 import { DefaultErrorDisplay } from "../codingUtils/ErrorDisplay";
 
@@ -33,11 +33,15 @@ export default function Main() {
         }
     }
 
-    useEffect(() => {
-        if (pyodideWorker) return
+    const setupPyodide = () => {
         const worker = new WorkerManager("/pyodide.js")
         worker.addListener(pyodideListener)
         setPyodideWorker(worker)
+    }
+
+    useEffect(() => {
+        if (pyodideWorker) return
+        setupPyodide()
     }, [])
 
     const runCode = async () => {
@@ -61,6 +65,12 @@ export default function Main() {
         setExecutionError("")
     }
 
+    const cancelCode = async () => {
+        pyodideWorker.terminate()
+        setPyodideState({ready: false, executing: false})
+        setupPyodide()
+    }
+
     return (
         <Box my={3}>
             <Container maxWidth="xl">
@@ -69,13 +79,21 @@ export default function Main() {
                         <Grid2 size={{xs: 6}}>
                             <DefaultEditor editorViewRef={editorViewRef} originalCode="" />
                             <Box mt={3}>
-                                <Grid2 container>
+                                <Grid2 container spacing={3}>
                                     <Grid2 minWidth={200}>
                                         <Box>
                                             <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
                                                 onClick={() => runCode()}>
                                                 Run Code
                                             </GreenPrimaryButton>
+                                        </Box>
+                                    </Grid2>
+                                    <Grid2 minWidth={200}>
+                                        <Box>
+                                            <RedPrimaryButton fullWidth disabled={!pyodideState.executing || !pyodideState.ready}
+                                            onClick={() => cancelCode()}>
+                                                Cancel Run
+                                            </RedPrimaryButton>
                                         </Box>
                                     </Grid2>
                                 </Grid2>
