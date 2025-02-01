@@ -1,4 +1,3 @@
-import { C_Session } from "@/database/interfaces/Session";
 import { Box, Paper, Typography } from "@mui/material";
 import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
