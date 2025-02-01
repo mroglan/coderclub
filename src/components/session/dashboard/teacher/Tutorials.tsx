@@ -1,6 +1,6 @@
 import { PurplePrimaryButton } from "@/components/misc/buttons";
-import { C_Session } from "@/database/interfaces/Session";
-import { C_SessionTutorial, TUTORIAL_NAMES, TUTORIAL_STEPS } from "@/database/interfaces/SessionTutorial";
+import { MySession } from "@/database/interfaces/Session";
+import { SessionTutorial, TUTORIAL_NAMES, TUTORIAL_STEPS } from "@/database/interfaces/SessionTutorial";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, FormControl, Grid2, InputLabel, List, ListItem, MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from "axios";
@@ -9,9 +9,9 @@ import { PrimaryLink } from "@/components/misc/links";
 
 
 interface Props {
-    session: C_Session;
-    tutorials: C_SessionTutorial[];
-    setTutorials: Dispatch<SetStateAction<C_SessionTutorial[]>>
+    session: MySession;
+    tutorials: SessionTutorial[];
+    setTutorials: Dispatch<SetStateAction<SessionTutorial[]>>
 }
 
 
@@ -23,7 +23,7 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
     const [togglingLocked, setTogglingLocked] = useState(false)
 
     const possibleTutorialsToAdd = useMemo(() => (
-        TUTORIAL_NAMES.filter(n => !tutorials.find(t => t.data.name === n))
+        TUTORIAL_NAMES.filter(n => !tutorials.find(t => t.name === n))
     ), [tutorials])
 
     const changeTutorialToAdd = (e: SelectChangeEvent) => {
@@ -39,14 +39,15 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
 
             const {data} = await axios({
                 method: "POST",
-                url: `/api/session/${session.data.url_name}/tutorial/add`,
+                url: `/api/session/${session.url_name}/tutorial/add`,
                 data: {
-                    name: tutorialToAdd
+                    name: tutorialToAdd,
+                    sessionId: session.id
                 }
             })
 
             setTutorialToAdd("")
-            setTutorials([...tutorials, data.tutorial])
+            setTutorials([...tutorials, data.tutorial.data])
         } catch (e) {
             console.log(e)
         } finally {
@@ -54,10 +55,10 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
         }
     }
 
-    const toggleLocked = async (tutorial: C_SessionTutorial, step: string) => {
+    const toggleLocked = async (tutorial: SessionTutorial, step: string) => {
         setTogglingLocked(true) 
 
-        const unlockSolutions = [...tutorial.data.unlockSolutions]
+        const unlockSolutions = [...tutorial.unlockSolutions]
 
         if (unlockSolutions.includes(step)) {
             unlockSolutions.splice(unlockSolutions.indexOf(step), 1)
@@ -69,10 +70,11 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
 
             await axios({
                 method: "POST",
-                url: `/api/session/${session.data.url_name}/tutorial/update`,
+                url: `/api/session/${session.url_name}/tutorial/update`,
                 data: {
-                    sessionId: session.ref["@ref"].id,
-                    name: tutorial.data.name,
+                    sessionId: session.id,
+                    name: tutorial.name,
+                    id: tutorial.id,
                     data: {
                         unlockSolutions
                     }
@@ -80,8 +82,8 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
             })
 
             const copy = tutorials.map(c => {
-                if (c.data.name === tutorial.data.name) {
-                    c.data.unlockSolutions = unlockSolutions
+                if (c.name === tutorial.name) {
+                    c.unlockSolutions = unlockSolutions
                 }
                 return c
             })
@@ -104,29 +106,29 @@ export default function Tutorials({session, tutorials, setTutorials}: Props) {
             </Box>
             <Box>
                 {tutorials.map(tutorial => (
-                    <Box key={tutorial.data.name}>
+                    <Box key={tutorial.name}>
                         <Accordion>
                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                 <Typography variant="h6">
-                                    {tutorial.data.name}
+                                    {tutorial.name}
                                 </Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Box mb={3}>
                                     <List>
-                                        {(TUTORIAL_STEPS as any)[tutorial.data.name].map((step: string) => (
+                                        {(TUTORIAL_STEPS as any)[tutorial.name].map((step: string) => (
                                             <ListItem key={step} sx={{mb: 1}}>
                                                 <Grid2 container alignItems="center" width="100%">
                                                     <Grid2 flex={1}>
                                                         <PrimaryLink href="/session/{url_name}/tutorial/{tutorial_name}?step=step"
-                                                        as={`/session/${session.data.url_name}/tutorial/${tutorial.data.name}?step=${step}`} >
+                                                        as={`/session/${session.url_name}/tutorial/${tutorial.name}?step=${step}`} >
                                                             {step}
                                                         </PrimaryLink>
                                                     </Grid2>
                                                     <Grid2>
                                                         <Button disabled={togglingLocked} onClick={() => toggleLocked(tutorial, step)}>
                                                             {
-                                                                tutorial.data.unlockSolutions.includes(step) ?
+                                                                tutorial.unlockSolutions.includes(step) ?
                                                                 "Solution Unlocked" :
                                                                 "Solution Locked"
                                                             }

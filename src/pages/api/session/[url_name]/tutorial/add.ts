@@ -16,7 +16,9 @@ export default verifyUser(async function AddTutorial(req: NextApiRequest, res: N
             return res.status(403).json({msg: "Only teachers may add tutorials"})
         }
 
-        const tutorial = await CreateSessionTutorialByTeacher(req.body.jwtUser.id, req.query.url_name as string, req.body.name)
+        console.log('sesssionId', req.body.sessionId)
+
+        const tutorial = await CreateSessionTutorialByTeacher(req.body.jwtUser.id, req.query.url_name as string, req.body.sessionId, req.body.name)
 
         if (!tutorial) {
             return res.status(409).json({msg: "Error adding student"})

@@ -34,7 +34,7 @@ export default function TeacherMain({session, students: originalStudents, tutori
                             <Students session={session} students={students} setStudents={setStudents} />
                         </Grid2>
                         <Grid2 flex={1}>
-                            {/* <Tutorials session={session} tutorials={tutorials} setTutorials={setTutorials} /> */}
+                            <Tutorials session={session} tutorials={tutorials} setTutorials={setTutorials} />
                         </Grid2>
                     </Grid2>
                 </Box>

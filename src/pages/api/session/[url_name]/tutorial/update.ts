@@ -15,7 +15,7 @@ export default verifyUser(async function UpdateTutorial(req: NextApiRequest, res
             return res.status(403).json({msg: "Only teachers may update tutorials"})
         }
 
-        const tutorial = await UpdateSessionTutorialByTeacher(req.body.jwtUser.id, req.body.sessionId as string, req.body.name, req.body.data)
+        const tutorial = await UpdateSessionTutorialByTeacher(req.body.id, req.body.jwtUser.id, req.body.sessionId as string, req.body.name, req.body.data)
 
         if (!tutorial) {
             return res.status(409).json({msg: "Error updating tutorial"})
