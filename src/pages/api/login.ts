@@ -14,14 +14,11 @@ export default async function Login(req:NextApiRequest, res:NextApiResponse) {
 
         const {email, password} = req.body
 
-        const teacher = await getTeacherFromEmail(email)
+        const teacher = await getTeacherFromEmail(email) as any
+        console.log('teacher', teacher)
 
-        if (!teacher) {
+        if (!teacher.data) {
             return res.status(409).json({field: 'email', msg: 'Email not found.'})
-        }
-
-        if (!teacher.data.password) {
-            return res.status(401).json({msg: 'Need to set up account.'})
         }
 
         const isCorrectPassword = await new Promise<boolean>((resolve, reject) => {
@@ -38,7 +35,7 @@ export default async function Login(req:NextApiRequest, res:NextApiResponse) {
         }
 
         const token = jwt.sign(
-            {email, type: "teacher", id: teacher.ref.id},
+            {email, type: "teacher", id: teacher.data.id},
             process.env.JWT_TOKEN_SIGNATURE,
             {expiresIn: '48hr'}
         )

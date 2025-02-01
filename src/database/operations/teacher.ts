@@ -1,7 +1,8 @@
 import client from "../fauna"
-import { query as q } from "faunadb"
+import { fql } from "fauna"
+// import { query as q } from "faunadb"
 
-import { S_Teacher, S_TeacherData } from "../interfaces/Teacher"
+import { S_Teacher, S_TeacherData, Teacher } from "../interfaces/Teacher"
 import { S_Session } from "../interfaces/Session"
 import { S_Student } from "../interfaces/Student"
 import { C_SessionTutorial, S_SessionTutorial } from "../interfaces/SessionTutorial"
@@ -21,24 +22,33 @@ interface CreateTeacherData extends Omit<S_TeacherData, "sessions"> {}
 export async function createTeacher(data: CreateTeacherData) {
 
     return await client.query(
-        q.If(
-            InnerQueries.existsTeacherWithEmail(data.email),
-            null,
-            q.Create(q.Collection("teacher"), {data: {...data, sessions: []}})
-        )
+        fql`
+            let exists = teacher.byEmail(${data.email}).first()
+            if (exists == null) {
+                teacher.create({
+                    email: ${data.email},
+                    password: ${data.password},
+                })
+            }
+        `
     )
 }
 
 
 export async function getTeacherFromEmail(email:string) {
 
+    // return await client.query(
+    //     q.If(
+    //         InnerQueries.existsTeacherWithEmail(email),
+    //         q.Get(q.Match(q.Index('teacher_by_email'), email)),
+    //         null
+    //     )
+    // ) as S_Teacher
     return await client.query(
-        q.If(
-            InnerQueries.existsTeacherWithEmail(email),
-            q.Get(q.Match(q.Index('teacher_by_email'), email)),
-            null
-        )
-    ) as S_Teacher
+        fql`
+            teacher.byEmail(${email}).first()
+        `
+    )
 }
 
 
