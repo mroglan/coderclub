@@ -4,7 +4,7 @@ import { Terminal } from "@/components/codingUtils/Output";
 import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
 import { GreenPrimaryButton, PurplePrimaryButton } from "@/components/misc/buttons";
-import { C_SessionTutorial, TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
+import { TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
 import { Props, TeacherData } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
 import { Box, Container, Grid2, Typography } from "@mui/material";
@@ -14,19 +14,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import axios from "axios";
-import { C_TutorialProgress } from "@/database/interfaces/TutorialProgress";
+import { TutorialProgress } from "@/database/interfaces/TutorialProgress";
 
 
 export default function Main({data, type}: Props) {
 
-    const [totalProgress, setTotalProgress] = useState(data.progress?.data || {
-        sessionId: data.tutorial.data.sessionId,
-        teacherId: type == "teacher" ? data.tutorial.data.teacherId : undefined,
+    const [totalProgress, setTotalProgress] = useState(data.progress || {
+        sessionId: data.tutorial.sessionId,
+        teacherId: type == "teacher" ? data.tutorial.teacherId : undefined,
         studentId: type == "student" ? "": undefined,
         code: {} as any
     })
 
-    const [studentCodeToShow, setStudentCodeToShow] = useState<C_TutorialProgress|null>(null)
+    const [studentCodeToShow, setStudentCodeToShow] = useState<TutorialProgress|null>(null)
     const [loadingStudentCode, setLoadingStudentCode] = useState(false)
 
     const router = useRouter()
@@ -35,7 +35,7 @@ export default function Main({data, type}: Props) {
         if (router.query.step) return
 
         router.push({
-            query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.data.name][0]},
+            query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.name][0]},
         }, undefined, {shallow: true})
     }, [router.query])
 
@@ -84,7 +84,7 @@ export default function Main({data, type}: Props) {
     useMemo(() => {
         if (!router.query.step) return
 
-        const code = totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.data.name][router.query.step as string]
+        const code = totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]
 
         setClearCount(clearCount+1)
         setSelectedTab("My Code")
@@ -115,9 +115,10 @@ export default function Main({data, type}: Props) {
         if (selectedTab === "My Code") {
             newContent = totalProgress.code[router.query.step as string]
         } else if (selectedTab === "Solution") {
-            newContent = TUTORIAL_SOLUTIONS[data.tutorial.data.name][router.query.step as string]
+            newContent = TUTORIAL_SOLUTIONS[data.tutorial.name][router.query.step as string]
         } else if (selectedTab === "Student Code") {
-            newContent = studentCodeToShow?.data.code[router.query.step as string] || "# No progress found!"
+            console.log('studentCodeToShow here', studentCodeToShow)
+            newContent = studentCodeToShow?.code[router.query.step as string] || "# No progress found!"
         }
         (editorViewRef as any).current.dispatch({
             changes: { from: 0, to: (editorViewRef as any).current.state.doc.length, insert: newContent },
@@ -132,8 +133,8 @@ export default function Main({data, type}: Props) {
                 method: "POST",
                 url: `/api/session/${router.query.url_name}/tutorial/update-progress`,
                 data: {
-                    sessionId: data.tutorial.data.sessionId,
-                    tutorialName: data.tutorial.data.name,
+                    sessionId: data.tutorial.sessionId,
+                    tutorialName: data.tutorial.name,
                     stepName: router.query.step,
                     code: editorViewRef.current.state.doc.toString()
                 }
@@ -189,28 +190,28 @@ export default function Main({data, type}: Props) {
 
     const onBack = () => {
         saveProgressLocally()
-        if (router.query.step === TUTORIAL_STEPS[data.tutorial.data.name][0]) {
+        if (router.query.step === TUTORIAL_STEPS[data.tutorial.name][0]) {
             if (confirm("Are you sure you want to leave the tutorial?")) {
                 Router.push("/")
             }
         } else {
-            const currIndex = TUTORIAL_STEPS[data.tutorial.data.name].indexOf(router.query.step as string)
+            const currIndex = TUTORIAL_STEPS[data.tutorial.name].indexOf(router.query.step as string)
             router.push({
-                query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.data.name][currIndex-1]}
+                query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.name][currIndex-1]}
             })
         }
     }
 
     const onNext = () => {
         saveProgressLocally()
-        if (router.query.step === TUTORIAL_STEPS[data.tutorial.data.name].at(-1)) {
+        if (router.query.step === TUTORIAL_STEPS[data.tutorial.name].at(-1)) {
             router.push({
                 query: {...router.query, step: "review"},
             }, undefined, {shallow: true})
         } else {
-            const currIndex = TUTORIAL_STEPS[data.tutorial.data.name].indexOf(router.query.step as string)
+            const currIndex = TUTORIAL_STEPS[data.tutorial.name].indexOf(router.query.step as string)
             router.push({
-                query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.data.name][currIndex+1]}
+                query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.name][currIndex+1]}
             })
         }
     }
@@ -224,12 +225,12 @@ export default function Main({data, type}: Props) {
 
             const {data: {tutorialProgress}} = await axios({
                 method: "GET",
-                url: `/api/session/${router.query.url_name}/tutorial/student-progress?studentId=${studentId}&tutorialName=${data.tutorial.data.name}&sessionId=${data.tutorial.data.sessionId}`
+                url: `/api/session/${router.query.url_name}/tutorial/student-progress?studentId=${studentId}&tutorialName=${data.tutorial.name}&sessionId=${data.tutorial.sessionId}`
             })
 
             if (!tutorialProgress) {
                 setStudentCodeToShow({
-                    data: {code: {}}
+                    code: {}
                 } as any)
             } else {
                 setStudentCodeToShow(tutorialProgress)
@@ -269,7 +270,7 @@ export default function Main({data, type}: Props) {
                         <Grid2 size={{xs: 6}}>
                             <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
                             <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}>
-                                <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.data.name][router.query.step as string]}
+                                <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
                                     editorViewRef={editorViewRef} />
                             </Box>
                             {
@@ -277,10 +278,10 @@ export default function Main({data, type}: Props) {
                                 bgcolor="#fff" p={3}>
                                     <Grid2 container spacing={3} justifyContent="space-around">
                                         {(data as TeacherData).students.map(student => (
-                                            <Grid2 key={student.data.name} sx={{cursor: "pointer"}}>
-                                                <Box onClick={() => displayStudentCode(student.ref["@ref"].id)}>
+                                            <Grid2 key={student.name} sx={{cursor: "pointer"}}>
+                                                <Box onClick={() => displayStudentCode(student.id)}>
                                                     <Typography variant="body1" color="primary">
-                                                        {student.data.name}
+                                                        {student.name}
                                                     </Typography>
                                                 </Box>
                                             </Grid2>

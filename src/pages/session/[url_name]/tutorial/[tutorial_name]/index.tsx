@@ -1,11 +1,10 @@
 import MainFooter from "@/components/nav/MainFooter";
 import MainHeader from "@/components/nav/MainHeader";
 import Main from "@/components/session/tutorial/Main";
-import { C_Session } from "@/database/interfaces/Session";
-import { C_SessionTutorial } from "@/database/interfaces/SessionTutorial";
-import { C_Student } from "@/database/interfaces/Student";
-import { C_Teacher } from "@/database/interfaces/Teacher";
-import { C_TutorialProgress } from "@/database/interfaces/TutorialProgress";
+import { MySession } from "@/database/interfaces/Session";
+import { SessionTutorial } from "@/database/interfaces/SessionTutorial";
+import { Student } from "@/database/interfaces/Student";
+import { TutorialProgress } from "@/database/interfaces/TutorialProgress";
 import { getStudentTutorialInfo } from "@/database/operations/student";
 import { getTeacherTutorialInfo } from "@/database/operations/teacher";
 import { getUserFromCtx, mustNotBeAuthenticated, StudentFromJWT } from "@/utils/auth";
@@ -15,10 +14,10 @@ import Head from "next/head";
 
 
 export interface TeacherData {
-    session: C_Session;
-    tutorial: C_SessionTutorial;
-    progress: C_TutorialProgress|null;
-    students: C_Student[];
+    session: MySession;
+    tutorial: SessionTutorial;
+    progress: TutorialProgress|null;
+    students: Student[];
 }
 
 
@@ -39,7 +38,7 @@ export default function Tutorial({data, type}: Props) {
     return (
         <>
             <Head>
-                <title>{`${data.tutorial.data.name} | Tutorial`}</title>     
+                <title>{`${data.tutorial.name} | Tutorial`}</title>     
             </Head> 
             <div className="root-header-footer">
                 <MainHeader loggedIn />
@@ -81,8 +80,13 @@ export const getServerSideProps: GetServerSideProps = async (ctx: GetServerSideP
             return redirect
         }
 
+        console.log('query data', data)
+
         if (token?.type == "student") {
             data.user = user
+        } else {
+            data = data.data
+            data.students = data.students.data
         }
 
         return {props: {

@@ -19,7 +19,7 @@ export default verifyUser(async function StudentProgress(req: NextApiRequest, re
         const tutorialProgress = await getStudentTutorialProgress(req.query.studentId as string, 
             req.query.sessionId as string, req.query.tutorialName as string)
 
-        return res.status(200).json({tutorialProgress})
+        return res.status(200).json({tutorialProgress: tutorialProgress?.data})
     } catch (e) {
         console.log(e)
         return res.status(500).json({msg: "Internal server error"})

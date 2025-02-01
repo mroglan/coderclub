@@ -1,4 +1,5 @@
 import client from "../fauna"
+import { fql } from "fauna"
 import { query as q } from "faunadb"
 
 
@@ -76,32 +77,59 @@ class InnerQueries {
 }
 
 export async function updateTutorialProgress(type: string, id: string, sessionId: string, tutorialName: string, stepName: string, code: string) {
-    return await client.query(
-        q.If(
-            type === "teacher",
-            q.If(
-                q.Equals(q.Select(["data", "teacherId"], q.Get(q.Ref(q.Collection("session"), sessionId))), id),
-                InnerQueries.updateProgressByTeacher(sessionId, tutorialName, id, stepName, code),
-                null
-            ),
-            InnerQueries.updateProgressByStudent(sessionId, tutorialName, id, stepName, code)
+    // return await client.query(
+    //     q.If(
+    //         type === "teacher",
+    //         q.If(
+    //             q.Equals(q.Select(["data", "teacherId"], q.Get(q.Ref(q.Collection("session"), sessionId))), id),
+    //             InnerQueries.updateProgressByTeacher(sessionId, tutorialName, id, stepName, code),
+    //             null
+    //         ),
+    //         InnerQueries.updateProgressByStudent(sessionId, tutorialName, id, stepName, code)
+    //     )
+    // )
+    const codeBlock = {
+        [stepName]: code
+    }
+    if (type == "teacher") {
+        return await client.query(
+            fql`
+                let progress = tutorialProgress.teacherProgress(${sessionId}, ${tutorialName}, ${id}).first()
+                if (progress == null) {
+                    tutorialProgress.create({
+                        sessionId: ${sessionId} ,
+                        tutorialName: ${tutorialName},
+                        teacherId: ${id},
+                        code: ${codeBlock}
+                    }) 
+                } else {
+                    progress!.update({
+                        code: ${codeBlock} 
+                    })
+                }
+            `
         )
-    )
+    }
 }
 
 
 export async function getStudentTutorialProgress(studentId: string, sessionId: string, tutorialName: string) {
+    // return await client.query(
+    //     q.If(
+    //         q.Exists(q.Match(
+    //             q.Index("tutorialProgress_by_sessionId_tutorialName_studentId"), 
+    //             [sessionId, tutorialName, studentId]
+    //         )),
+    //         q.Get(q.Match(
+    //             q.Index("tutorialProgress_by_sessionId_tutorialName_studentId"), 
+    //             [sessionId, tutorialName, studentId]
+    //         )),
+    //         null
+    //     )
+    // )
     return await client.query(
-        q.If(
-            q.Exists(q.Match(
-                q.Index("tutorialProgress_by_sessionId_tutorialName_studentId"), 
-                [sessionId, tutorialName, studentId]
-            )),
-            q.Get(q.Match(
-                q.Index("tutorialProgress_by_sessionId_tutorialName_studentId"), 
-                [sessionId, tutorialName, studentId]
-            )),
-            null
-        )
+        fql`
+            tutorialProgress.studentProgress(${sessionId}, ${tutorialName}, ${studentId}).first()
+        `
     )
 }

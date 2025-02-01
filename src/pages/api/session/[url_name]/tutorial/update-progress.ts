@@ -26,7 +26,7 @@ export default verifyUser(async function UpdateProgress(req: NextApiRequest, res
             req.body.code
         )
 
-        return res.status(200).json({result: data})
+        return res.status(200).json({result: data?.data})
     } catch (e) {
         console.log(e)
         return res.status(500).json({msg: "Internal server error"})
