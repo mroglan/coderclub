@@ -7,6 +7,7 @@ import WorkerManager from "../codingUtils/WorkerManager";
 import { GreenPrimaryButton, RedPrimaryButton } from "../misc/buttons";
 import { ScriptAdjustments } from "../codingUtils/scriptAdjustments";
 import { DefaultErrorDisplay } from "../codingUtils/ErrorDisplay";
+import EditorFullScreenDialog from "../codingUtils/EditorFullScreenDialog";
 
 
 export default function Main() {
@@ -79,7 +80,7 @@ export default function Main() {
                         <Grid2 size={{xs: 6}}>
                             <DefaultEditor editorViewRef={editorViewRef} originalCode="" />
                             <Box mt={3}>
-                                <Grid2 container spacing={3}>
+                                <Grid2 container spacing={3} alignItems="center">
                                     <Grid2 minWidth={200}>
                                         <Box>
                                             <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
@@ -96,6 +97,8 @@ export default function Main() {
                                             </RedPrimaryButton>
                                         </Box>
                                     </Grid2>
+                                    <Grid2 flex={1} />
+                                    <EditorFullScreenDialog editorViewRef={editorViewRef} />
                                 </Grid2>
                             </Box>
                         </Grid2>

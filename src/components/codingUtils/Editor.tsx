@@ -10,10 +10,11 @@ import { basicSetup } from "codemirror";
 interface DefaultEditorProps {
     originalCode: string;
     editorViewRef: RefObject<EditorView|null>;
+    height?: string;
 }
 
 
-export function DefaultEditor({originalCode, editorViewRef}: DefaultEditorProps) {
+export function DefaultEditor({originalCode, editorViewRef, height}: DefaultEditorProps) {
 
     const editorRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +48,7 @@ export function DefaultEditor({originalCode, editorViewRef}: DefaultEditorProps)
         <Box>
             <Paper elevation={5}>
                 <Box pt={1}>
-                    <div ref={editorRef} style={{height: "500px"}} />
+                    <div ref={editorRef} style={{height: height || "500px"}} />
                 </Box>
             </Paper>
         </Box>

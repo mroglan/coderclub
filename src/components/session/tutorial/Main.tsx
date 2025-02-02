@@ -16,6 +16,7 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import axios from "axios";
 import { TutorialProgress } from "@/database/interfaces/TutorialProgress";
 import CachedIcon from '@mui/icons-material/Cached';
+import EditorFullScreenDialog from "@/components/codingUtils/EditorFullScreenDialog";
 
 
 export default function Main({data, type}: Props) {
@@ -341,7 +342,7 @@ export default function Main({data, type}: Props) {
                                 </Box>
                             }
                             <Box mt={3}>
-                                <Grid2 container spacing={3}>
+                                <Grid2 container spacing={3} alignItems="center">
                                     <Grid2 minWidth={200}>
                                         <Box>
                                             <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
@@ -358,6 +359,8 @@ export default function Main({data, type}: Props) {
                                             </RedPrimaryButton>
                                         </Box>
                                     </Grid2>
+                                    <Grid2 flex={1} />
+                                    <EditorFullScreenDialog editorViewRef={editorViewRef} />
                                 </Grid2>
                             </Box>
                         </Grid2>
