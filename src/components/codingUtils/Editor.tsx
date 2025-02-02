@@ -1,6 +1,7 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
+import { indentMore, indentLess } from "@codemirror/commands";
 import { python } from "@codemirror/lang-python";
 import { EditorState } from "@codemirror/state";
 import { basicSetup } from "codemirror";
@@ -9,10 +10,11 @@ import { basicSetup } from "codemirror";
 interface DefaultEditorProps {
     originalCode: string;
     editorViewRef: RefObject<EditorView|null>;
+    height?: string;
 }
 
 
-export function DefaultEditor({originalCode, editorViewRef}: DefaultEditorProps) {
+export function DefaultEditor({originalCode, editorViewRef, height}: DefaultEditorProps) {
 
     const editorRef = useRef<HTMLDivElement>(null);
 
@@ -28,7 +30,11 @@ export function DefaultEditor({originalCode, editorViewRef}: DefaultEditorProps)
                         "&": { height: "100%", width: "100%" }, // Ensures the editor expands
                         ".cm-scroller": { height: "100%", overflow: "auto" }, // Makes the scroller take full height
                     }),
-                    EditorView.editable.of(true)
+                    EditorView.editable.of(true),
+                    keymap.of([
+                        { key: "Tab", run: indentMore }, 
+                        { key: "Shift-Tab", run: indentLess }
+                    ])
                 ],
             });
             editorViewRef.current = new EditorView({
@@ -42,7 +48,7 @@ export function DefaultEditor({originalCode, editorViewRef}: DefaultEditorProps)
         <Box>
             <Paper elevation={5}>
                 <Box pt={1}>
-                    <div ref={editorRef} style={{height: "500px"}} />
+                    <div ref={editorRef} style={{height: height || "500px"}} />
                 </Box>
             </Paper>
         </Box>

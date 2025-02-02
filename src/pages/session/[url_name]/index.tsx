@@ -40,7 +40,7 @@ export default function Session({data, type}: Props) {
     return (
         <>
             <Head>
-                <title>{data.session.name} | {type} View</title>
+                <title>{`${data.session.name} | ${type} View`}</title>
             </Head>
             <div className="root-header-footer">
                 <MainHeader loggedIn />

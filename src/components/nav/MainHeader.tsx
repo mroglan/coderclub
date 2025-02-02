@@ -28,6 +28,13 @@ export default function MainHeader({loggedIn}:Props) {
                         </Box>
                     </Grid2>
                     <Grid2 flex={1} />
+                    <Grid2 mr={3}>
+                        <Link href="/sandbox">
+                            <Typography variant="body1" >
+                                Sandbox
+                            </Typography>
+                        </Link>
+                    </Grid2>
                     {loggedIn && <Grid2>
                         <Box sx={{cursor: 'pointer'}} onClick={() => logout()}>
                             <Typography  variant="body1">

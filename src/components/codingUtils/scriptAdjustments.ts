@@ -7,13 +7,11 @@ export class ScriptAdjustments {
         this.script = script
     }
 
-    // private prependImports(s: string) {
-    //     const prepend = "import js_functions\nimport __builtin__\n__builtin__.print = js_functions.print"
-    //     return prepend + s
-    // }
+    private appendAwaitToInput(s: string) {
+        return s.replaceAll("input(", "await input(")
+    }
 
     output() {
-        // return this.prependImports(this.script)
-        return this.script
+        return this.appendAwaitToInput(this.script)
     }
 }

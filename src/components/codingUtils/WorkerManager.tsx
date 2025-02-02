@@ -24,6 +24,10 @@ export default class WorkerManager {
     this.listeners.delete(listener);
   }
 
+  terminate(): void {
+    this.worker.terminate()
+  }
+
   numListeners() {
     return this.listeners.size
   }

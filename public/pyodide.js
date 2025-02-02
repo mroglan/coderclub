@@ -21,6 +21,13 @@ const loadPyodideInstance = async () => {
         self.postMessage({type: "print", msg})
     })
 
+    pyodide.globals.set("input", async (prompt) => {
+        return new Promise((resolve) => {
+            self.inputResolver = resolve
+            self.postMessage({type: "input", prompt})
+        })
+    })
+
     self.postMessage({type: "ready"}); // Notify main thread that Pyodide is ready
 };
 
@@ -29,12 +36,6 @@ loadPyodideInstance()
 
 
 self.onmessage = async (event) => {
-    // probably not needed since we just call worker.terminate()
-    // if (event.data.type === "stop") {
-    //     self.close()
-    //     return
-    // }
-
     if (event.data.type === "input_response") {
         if (self.inputResolver) {
             self.inputResolver(event.data.value);
