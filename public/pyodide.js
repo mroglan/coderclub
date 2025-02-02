@@ -21,6 +21,13 @@ const loadPyodideInstance = async () => {
         self.postMessage({type: "print", msg})
     })
 
+    pyodide.globals.set("input", async (prompt) => {
+        return new Promise((resolve) => {
+            self.inputResolver = resolve
+            self.postMessage({type: "input", prompt})
+        })
+    })
+
     self.postMessage({type: "ready"}); // Notify main thread that Pyodide is ready
 };
 

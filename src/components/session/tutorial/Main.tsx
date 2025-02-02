@@ -209,7 +209,7 @@ export default function Main({data, type}: Props) {
 
         pyodideWorker.postMessage({
             type: "execute",
-            code: editorViewRef.current.state.doc.toString()
+            code: adjScript
         })
         setPyodideState({...pyodideState, executing: true})
         setExecutionError("")
