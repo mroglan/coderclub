@@ -3,7 +3,7 @@ import { DefaultErrorDisplay } from "@/components/codingUtils/ErrorDisplay";
 import { Terminal } from "@/components/codingUtils/Output";
 import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
-import { GreenPrimaryButton, PurplePrimaryButton, RedPrimaryButton } from "@/components/misc/buttons";
+import { GreenPrimaryButton, PurpleLargeButton, PurplePrimaryButton, RedPrimaryButton } from "@/components/misc/buttons";
 import { TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
 import { Props, TeacherData } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
@@ -17,6 +17,7 @@ import axios from "axios";
 import { TutorialProgress } from "@/database/interfaces/TutorialProgress";
 import CachedIcon from '@mui/icons-material/Cached';
 import EditorFullScreenDialog from "@/components/codingUtils/EditorFullScreenDialog";
+import Link from "next/link";
 
 
 export default function Main({data, type}: Props) {
@@ -91,6 +92,7 @@ export default function Main({data, type}: Props) {
 
     useMemo(() => {
         if (!router.query.step) return
+        if (router.query.step === "Tutorial Complete!") return
 
         const code = totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]
 
@@ -230,31 +232,33 @@ export default function Main({data, type}: Props) {
         })
     }
 
+    const goToStep = (step: string) => {
+        router.push({
+            query: {...router.query, step}
+        }, undefined, {shallow: true})
+    }
+
     const onBack = () => {
         saveProgressLocally()
         if (router.query.step === TUTORIAL_STEPS[data.tutorial.name][0]) {
             if (confirm("Are you sure you want to leave the tutorial?")) {
-                Router.push("/")
+                Router.push(`/session/${router.query.url_name}`)
             }
+        } else if (router.query.step === "Tutorial Complete!") {
+            goToStep(TUTORIAL_STEPS[data.tutorial.name].at(-1))
         } else {
             const currIndex = TUTORIAL_STEPS[data.tutorial.name].indexOf(router.query.step as string)
-            router.push({
-                query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.name][currIndex-1]}
-            })
+            goToStep(TUTORIAL_STEPS[data.tutorial.name][currIndex-1])
         }
     }
 
     const onNext = () => {
         saveProgressLocally()
         if (router.query.step === TUTORIAL_STEPS[data.tutorial.name].at(-1)) {
-            router.push({
-                query: {...router.query, step: "review"},
-            }, undefined, {shallow: true})
+            goToStep("Tutorial Complete!")
         } else {
             const currIndex = TUTORIAL_STEPS[data.tutorial.name].indexOf(router.query.step as string)
-            router.push({
-                query: {...router.query, step: TUTORIAL_STEPS[data.tutorial.name][currIndex+1]}
-            })
+            goToStep(TUTORIAL_STEPS[data.tutorial.name][currIndex+1])
         }
     }
 
@@ -291,7 +295,7 @@ export default function Main({data, type}: Props) {
                 <Box mx={3}>
                     <Box mb={3}>
                         <Grid2 container justifyContent="space-between" alignItems="center" wrap="nowrap">
-                            <Grid2 minWidth={200}>
+                            <Grid2>
                                 <PurplePrimaryButton startIcon={<ArrowLeftIcon />} onClick={onBack}>
                                     Back
                                 </PurplePrimaryButton>
@@ -302,13 +306,20 @@ export default function Main({data, type}: Props) {
                                 </Typography>
                             </Grid2>
                             <Grid2>
-                                <PurplePrimaryButton endIcon={<ArrowRightIcon />} onClick={onNext}>
+                                <PurplePrimaryButton sx={router.query.step === "Tutorial Complete!" ? {
+                                    opacity: 0,
+                                    zIndex: -1
+                                } : {
+                                    opacity: 1,
+                                    zIndex: 1
+                                }}
+                                endIcon={<ArrowRightIcon />} onClick={onNext}>
                                     Next
                                 </PurplePrimaryButton>
                             </Grid2>
                         </Grid2>
                     </Box>
-                    <Grid2 container spacing={3}>
+                    <Grid2 container spacing={3} display={router.query.step === "Tutorial Complete!" ? "none" : "flex"}>
                         <Grid2 size={{xs: 6}}>
                             <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
                             <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}
@@ -371,6 +382,44 @@ export default function Main({data, type}: Props) {
                             </Box>
                         </Grid2>
                     </Grid2>
+                    {router.query.step === "Tutorial Complete!" && <Box>
+                        <Box textAlign="center">
+                            <img src="/thatsallfolks.png" height={500} />
+                        </Box> 
+                        <Box mt={3}>
+                            <Grid2 container justifyContent="center" spacing={3}>
+                                <Grid2 width={300}>
+                                    <Link href={`/session/${router.query.url_name}`}>
+                                        <PurpleLargeButton fullWidth>
+                                            Back to Home     
+                                        </PurpleLargeButton> 
+                                    </Link>
+                                </Grid2>
+                                <Grid2 width={300}>
+                                    <Link href="/sandbox" target="_blank">
+                                        <PurpleLargeButton fullWidth>
+                                            Go to Sandbox!
+                                        </PurpleLargeButton>
+                                    </Link>
+                                </Grid2>
+                            </Grid2>
+                        </Box>
+                        <Box mt={6}>
+                            <Container maxWidth="md">
+                                <Grid2 container spacing={5} justifyContent="space-around">
+                                    {TUTORIAL_STEPS[data.tutorial.name].map(step => (
+                                        <Grid2>
+                                            <Box sx={{cursor: "pointer"}} onClick={() => goToStep(step)}>
+                                                <Typography variant="body1" color="primary">
+                                                    {step}
+                                                </Typography>
+                                            </Box>
+                                        </Grid2>
+                                    ))}
+                                </Grid2>
+                            </Container>
+                        </Box>
+                    </Box>}
                 </Box>
             </Container>
         </Box>

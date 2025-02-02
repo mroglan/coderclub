@@ -13,10 +13,10 @@ export const TUTORIAL_STEPS = {
         "Challenge: Introduce yourself!",
         "Challenge: Shapes!!",
         "Variables",
+        "Changing Strings!",
         "Numbers",
         "Changing Numbers!",
         "Challenge: Raised to a Power!",
-        "Changing Strings!",
         // template:
         // first_name = "BOB"
         // last_name = "Bobbinson"
