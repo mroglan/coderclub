@@ -27,9 +27,9 @@ export default function StudentMain({session, tutorials, student}: Props) {
                     </Box>
                     <Grid2 container>
                         <Grid2 size={{xs: 6}}>
-                            <Typography variant="h4">
-                                Hi, {student.name}!
-                            </Typography>
+                            <Box textAlign="center">
+                                <img src="/hello.gif" width={512} />
+                            </Box>
                         </Grid2>
                         <Grid2 flex={1}>
                             <Box>
