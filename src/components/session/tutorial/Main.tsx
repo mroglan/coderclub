@@ -149,7 +149,7 @@ export default function Main({data, type}: Props) {
             newContent = totalProgress.code[router.query.step as string]
         } else if (selectedTab === "Solution") {
             newContent = TUTORIAL_SOLUTIONS[data.tutorial.name][router.query.step as string]
-            if (!tutorial.unlockSolutions.includes(router.query.step as string)) {
+            if (!tutorial.unlockSolutions.includes(router.query.step as string) && type === "student") {
                 newContent = "# Solutions not unlocked yet!!!"
             } else {
                 checkingForSolutionDelayTime.current = 0
