@@ -1,6 +1,7 @@
 
 export const TUTORIAL_NAMES = [
     "Hello World",
+    "Inputs and More!",
     "Next1",
     "Next2"
 ]
@@ -17,11 +18,11 @@ export const TUTORIAL_STEPS = {
         "Numbers",
         "Changing Numbers!",
         "Challenge: Raised to a Power!",
-        // template:
-        // first_name = "BOB"
-        // last_name = "Bobbinson"
-        // full_name = first_name + " " + last_name
-        // print("My full name is " + full_name)
+    ],
+    "Inputs and More!": [
+        "The Input",
+        "More Inputs!",
+        "Challenge: your own input!"
     ],
     "Next1": [],
     "Next2": []
@@ -92,6 +93,21 @@ full_name = first_name + ' ' + last_name
 print('My full name is ' + full_name + '.')
         `.trim()
     },
+    "Inputs and More!": {
+        "The Input": `
+word = input('Enter a word:') 
+print('You entered ' + word)
+        `.trim(),
+    "More Inputs!": `
+first_name = input('Enter your first name:') 
+last_name = input('Enter your last name:')
+print('Hello, ' + first_name + ' ' + last_name)
+    `.trim(),
+    "Challenge: your own input!": `
+age = input('How old are you?') 
+print('I am ' + age + ' years old')
+    `.trim()
+    }
 } as {[key: string]: {[key: string]: string}}
 
 
@@ -163,6 +179,21 @@ last_name = 'Bobbinson'
 full_name = first_name + ' ' + last_name
 print('My full name is ' + full_name + '.')
         `.trim()
+    },
+    "Inputs and More!": {
+        "The Input": `
+word = input("Enter a word:") 
+print("You entered " + word)
+        `.trim(),
+    "More Inputs!": `
+first_name = input('Enter your first name:') 
+last_name = input('Enter your last name:')
+print('Hello, ' + first_name + ' ' + last_name)
+    `.trim(),
+    "Challenge: your own input!": `
+# for example, ask the user for their age
+# and print it in a sentence!
+    `.trim()
     }
 } as {[key: string]: {[key: string]: string}}
 
