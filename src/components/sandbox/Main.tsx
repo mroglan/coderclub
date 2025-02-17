@@ -9,6 +9,7 @@ import { ScriptAdjustments } from "../codingUtils/scriptAdjustments";
 import { DefaultErrorDisplay } from "../codingUtils/ErrorDisplay";
 import EditorFullScreenDialog from "../codingUtils/EditorFullScreenDialog";
 import { ResizableBox } from "react-resizable"
+import Undo from "../codingUtils/Undo";
 
 
 export default function Main() {
@@ -122,6 +123,7 @@ export default function Main() {
                                                 </Box>
                                             </Grid2>
                                             <Grid2 flex={1} />
+                                            <Undo editorViewRef={editorViewRef} />
                                             <EditorFullScreenDialog editorViewRef={editorViewRef} />
                                         </Grid2>
                                     </Box>
