@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import "react-resizable/css/styles.css"; // Required for styling
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import createCache, { EmotionCache } from '@emotion/cache'
 import { CacheProvider } from '@emotion/react'

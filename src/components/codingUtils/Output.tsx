@@ -1,5 +1,5 @@
 import { Box, Grid2, TextField } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import WorkerManager from "./WorkerManager";
 import { GreenPrimaryButton } from "../misc/buttons";
 
@@ -21,10 +21,20 @@ export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Prop
     const [waitingForInput, setWaitingForInput] = useState(false)
     const [input, setInput] = useState("")
 
+    const printLength = useRef<number>(0)
+
     const listener = (event: MessageEvent) => {
         console.log("from antoher", event)
+        if (printLength.current < 0) return
         if (event.data.type === "print") {
-            setOutput((prev) => [...prev, event.data.msg as string])
+            setOutput((prev) => {
+                printLength.current += event.data.msg.split("\n").length
+                if (printLength.current > 10000) {
+                    printLength.current = -1
+                    return [...prev, event.data.msg as string, "Print limit exceeded! No more messages will be shown.\nDo you have an infinite loop perhaps?"]
+                }
+                return [...prev, event.data.msg as string]
+            })
         }
         if (event.data.type === "input") {
             setOutput((prev) => [...prev, event.data.prompt as string])
@@ -47,6 +57,7 @@ export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Prop
 
         if (pyodideState.executing) {
             setOutput([])
+            printLength.current = 0
         } else {
             setWaitingForInput(false)
             setInput("")

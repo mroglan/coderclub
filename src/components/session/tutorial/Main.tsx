@@ -18,6 +18,8 @@ import { TutorialProgress } from "@/database/interfaces/TutorialProgress";
 import CachedIcon from '@mui/icons-material/Cached';
 import EditorFullScreenDialog from "@/components/codingUtils/EditorFullScreenDialog";
 import Link from "next/link";
+import { ResizableBox } from "react-resizable"
+import Undo from "@/components/codingUtils/Undo";
 
 
 export default function Main({data, type}: Props) {
@@ -87,6 +89,13 @@ export default function Main({data, type}: Props) {
 
 
     const editorViewRef = useRef<EditorView>(null);
+
+    const [editorWidth, setEditorWidth] = useState(parseInt(localStorage.getItem("editorWidth") || "600"))
+
+    const updateEditorWidth = (size: number) => {
+        setEditorWidth(size)
+        localStorage.setItem("editorWidth", size.toString())
+    }
 
     const [selectedTab, setSelectedTab] = useState("My Code")
 
@@ -291,137 +300,155 @@ export default function Main({data, type}: Props) {
 
     return (
         <Box my={3}>
-            <Container maxWidth="xl">
-                <Box mx={3}>
-                    <Box mb={3}>
-                        <Grid2 container justifyContent="space-between" alignItems="center" wrap="nowrap">
-                            <Grid2>
-                                <PurplePrimaryButton startIcon={<ArrowLeftIcon />} onClick={onBack}>
-                                    Back
-                                </PurplePrimaryButton>
+            <Box mx={3}>
+                <Box mb={3}>
+                    <Grid2 container justifyContent="space-between" alignItems="center" wrap="nowrap">
+                        <Grid2>
+                            <PurplePrimaryButton startIcon={<ArrowLeftIcon />} onClick={onBack}>
+                                Back
+                            </PurplePrimaryButton>
+                        </Grid2>
+                        <Grid2>
+                            <Typography variant="h4">
+                                {router.query.step}
+                            </Typography>
+                        </Grid2>
+                        <Grid2>
+                            <PurplePrimaryButton sx={router.query.step === "Tutorial Complete!" ? {
+                                opacity: 0,
+                                zIndex: -1
+                            } : {
+                                opacity: 1,
+                                zIndex: 1
+                            }}
+                            endIcon={<ArrowRightIcon />} onClick={onNext}>
+                                Next
+                            </PurplePrimaryButton>
+                        </Grid2>
+                    </Grid2>
+                </Box>
+                <Grid2 container spacing={3} display={router.query.step === "Tutorial Complete!" ? "none" : "flex"}>
+                    <Grid2>
+                        <ResizableBox
+                            width={editorWidth}
+                            height={Infinity}
+                            axis="x"
+                            resizeHandles={["e"]}
+                            minConstraints={[400, Infinity]}
+                            maxConstraints={[window.innerWidth-63, Infinity]}
+                            onResizeStop={(event, {size}) => updateEditorWidth(size.width)}
+                            handle={<Box sx={{
+                                position: "absolute",
+                                right: -24,
+                                top: 0,
+                                width: "30px",
+                                height: "100%",
+                                cursor: "ew-resize"
+                            }} />}>
+                            <Box>
+                                <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
+                                <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}
+                                    position="relative">
+                                    {
+                                        type == "student" && selectedTab == "Solution" && !tutorial.unlockSolutions.includes(router.query.step as string) 
+                                        && <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} zIndex={10}>
+                                            <IconButton color="success" sx={{animation: checkingForSolution ? "rotate 5s infinite linear": "none"}}
+                                            disabled={checkingForSolution} onClick={loadSolution}>
+                                                <CachedIcon sx={{fontSize: 100}} />
+                                            </IconButton>
+                                        </Box>
+                                    }
+                                    <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
+                                        editorViewRef={editorViewRef} />
+                                </Box>
+                                {
+                                    selectedTab === "Student Code" && !studentCodeToShow && <Box
+                                    bgcolor="#fff" p={3}>
+                                        <Grid2 container spacing={3} justifyContent="space-around">
+                                            {(data as TeacherData).students.map(student => (
+                                                <Grid2 key={student.name} sx={{cursor: "pointer"}}>
+                                                    <Box onClick={() => displayStudentCode(student.id)}>
+                                                        <Typography variant="body1" color="primary">
+                                                            {student.name}
+                                                        </Typography>
+                                                    </Box>
+                                                </Grid2>
+                                            ))}
+                                        </Grid2>
+                                    </Box>
+                                }
+                                <Box mt={3}>
+                                    <Grid2 container spacing={3} alignItems="center">
+                                        <Grid2 minWidth={200}>
+                                            <Box>
+                                                <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
+                                                    onClick={() => runCode()}>
+                                                    Run Code
+                                                </GreenPrimaryButton>
+                                            </Box>
+                                        </Grid2>
+                                        <Grid2 minWidth={200}>
+                                            <Box>
+                                                <RedPrimaryButton fullWidth disabled={!pyodideState.executing || !pyodideState.ready}
+                                                onClick={() => cancelCode()}>
+                                                    Cancel Run
+                                                </RedPrimaryButton>
+                                            </Box>
+                                        </Grid2>
+                                        <Grid2 flex={1} />
+                                        <Undo editorViewRef={editorViewRef} />
+                                        <EditorFullScreenDialog editorViewRef={editorViewRef} />
+                                    </Grid2>
+                                </Box>
+                            </Box>
+                        </ResizableBox>
+                    </Grid2>
+                    <Grid2 flex={1} minWidth={300} position="relative">
+                        <Box mt={3}>
+                            <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} clearCount={clearCount} height={540} />
+                            <DefaultErrorDisplay error={executionError} />
+                        </Box>
+                    </Grid2>
+                </Grid2>
+                {router.query.step === "Tutorial Complete!" && <Box>
+                    <Box textAlign="center">
+                        <img src="/thatsallfolks.png" height={500} />
+                    </Box> 
+                    <Box mt={3}>
+                        <Grid2 container justifyContent="center" spacing={3}>
+                            <Grid2 width={300}>
+                                <Link href={`/session/${router.query.url_name}`}>
+                                    <PurpleLargeButton fullWidth>
+                                        Back to Home     
+                                    </PurpleLargeButton> 
+                                </Link>
                             </Grid2>
-                            <Grid2>
-                                <Typography variant="h4">
-                                    {router.query.step}
-                                </Typography>
-                            </Grid2>
-                            <Grid2>
-                                <PurplePrimaryButton sx={router.query.step === "Tutorial Complete!" ? {
-                                    opacity: 0,
-                                    zIndex: -1
-                                } : {
-                                    opacity: 1,
-                                    zIndex: 1
-                                }}
-                                endIcon={<ArrowRightIcon />} onClick={onNext}>
-                                    Next
-                                </PurplePrimaryButton>
+                            <Grid2 width={300}>
+                                <Link href="/sandbox" target="_blank">
+                                    <PurpleLargeButton fullWidth>
+                                        Go to Sandbox!
+                                    </PurpleLargeButton>
+                                </Link>
                             </Grid2>
                         </Grid2>
                     </Box>
-                    <Grid2 container spacing={3} display={router.query.step === "Tutorial Complete!" ? "none" : "flex"}>
-                        <Grid2 size={{xs: 6}}>
-                            <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
-                            <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}
-                                position="relative">
-                                {
-                                    type == "student" && selectedTab == "Solution" && !tutorial.unlockSolutions.includes(router.query.step as string) 
-                                    && <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} zIndex={10}>
-                                        <IconButton color="success" sx={{animation: checkingForSolution ? "rotate 5s infinite linear": "none"}}
-                                        disabled={checkingForSolution} onClick={loadSolution}>
-                                            <CachedIcon sx={{fontSize: 100}} />
-                                        </IconButton>
-                                    </Box>
-                                }
-                                <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
-                                    editorViewRef={editorViewRef} />
-                            </Box>
-                            {
-                                selectedTab === "Student Code" && !studentCodeToShow && <Box
-                                bgcolor="#fff" p={3}>
-                                    <Grid2 container spacing={3} justifyContent="space-around">
-                                        {(data as TeacherData).students.map(student => (
-                                            <Grid2 key={student.name} sx={{cursor: "pointer"}}>
-                                                <Box onClick={() => displayStudentCode(student.id)}>
-                                                    <Typography variant="body1" color="primary">
-                                                        {student.name}
-                                                    </Typography>
-                                                </Box>
-                                            </Grid2>
-                                        ))}
-                                    </Grid2>
-                                </Box>
-                            }
-                            <Box mt={3}>
-                                <Grid2 container spacing={3} alignItems="center">
-                                    <Grid2 minWidth={200}>
-                                        <Box>
-                                            <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
-                                                onClick={() => runCode()}>
-                                                Run Code
-                                            </GreenPrimaryButton>
+                    <Box mt={6}>
+                        <Container maxWidth="md">
+                            <Grid2 container spacing={5} justifyContent="space-around">
+                                {TUTORIAL_STEPS[data.tutorial.name].map(step => (
+                                    <Grid2>
+                                        <Box sx={{cursor: "pointer"}} onClick={() => goToStep(step)}>
+                                            <Typography variant="body1" color="primary">
+                                                {step}
+                                            </Typography>
                                         </Box>
                                     </Grid2>
-                                    <Grid2 minWidth={200}>
-                                        <Box>
-                                            <RedPrimaryButton fullWidth disabled={!pyodideState.executing || !pyodideState.ready}
-                                            onClick={() => cancelCode()}>
-                                                Cancel Run
-                                            </RedPrimaryButton>
-                                        </Box>
-                                    </Grid2>
-                                    <Grid2 flex={1} />
-                                    <EditorFullScreenDialog editorViewRef={editorViewRef} />
-                                </Grid2>
-                            </Box>
-                        </Grid2>
-                        <Grid2 size={{xs: 6}} position="relative">
-                            <Box mt={3}>
-                                <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} clearCount={clearCount} height={540} />
-                                <DefaultErrorDisplay error={executionError} />
-                            </Box>
-                        </Grid2>
-                    </Grid2>
-                    {router.query.step === "Tutorial Complete!" && <Box>
-                        <Box textAlign="center">
-                            <img src="/thatsallfolks.png" height={500} />
-                        </Box> 
-                        <Box mt={3}>
-                            <Grid2 container justifyContent="center" spacing={3}>
-                                <Grid2 width={300}>
-                                    <Link href={`/session/${router.query.url_name}`}>
-                                        <PurpleLargeButton fullWidth>
-                                            Back to Home     
-                                        </PurpleLargeButton> 
-                                    </Link>
-                                </Grid2>
-                                <Grid2 width={300}>
-                                    <Link href="/sandbox" target="_blank">
-                                        <PurpleLargeButton fullWidth>
-                                            Go to Sandbox!
-                                        </PurpleLargeButton>
-                                    </Link>
-                                </Grid2>
+                                ))}
                             </Grid2>
-                        </Box>
-                        <Box mt={6}>
-                            <Container maxWidth="md">
-                                <Grid2 container spacing={5} justifyContent="space-around">
-                                    {TUTORIAL_STEPS[data.tutorial.name].map(step => (
-                                        <Grid2>
-                                            <Box sx={{cursor: "pointer"}} onClick={() => goToStep(step)}>
-                                                <Typography variant="body1" color="primary">
-                                                    {step}
-                                                </Typography>
-                                            </Box>
-                                        </Grid2>
-                                    ))}
-                                </Grid2>
-                            </Container>
-                        </Box>
-                    </Box>}
-                </Box>
-            </Container>
+                        </Container>
+                    </Box>
+                </Box>}
+            </Box>
         </Box>
     )
 }

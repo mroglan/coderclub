@@ -8,6 +8,8 @@ import { GreenPrimaryButton, RedPrimaryButton } from "../misc/buttons";
 import { ScriptAdjustments } from "../codingUtils/scriptAdjustments";
 import { DefaultErrorDisplay } from "../codingUtils/ErrorDisplay";
 import EditorFullScreenDialog from "../codingUtils/EditorFullScreenDialog";
+import { ResizableBox } from "react-resizable"
+import Undo from "../codingUtils/Undo";
 
 
 export default function Main() {
@@ -20,6 +22,8 @@ export default function Main() {
         executing: false,
     })
     const [executionError, setExecutionError] = useState("")
+
+    const [editorWidth, setEditorWidth] = useState(parseInt(localStorage.getItem("editorWidth") || "600"))
 
     const pyodideListener = (event: MessageEvent) => {
         if (event.data.type === "ready") {
@@ -72,43 +76,66 @@ export default function Main() {
         setupPyodide()
     }
 
+    const updateEditorWidth = (size: number) => {
+        setEditorWidth(size)
+        localStorage.setItem("editorWidth", size.toString())
+    }
+
     return (
         <Box my={3}>
-            <Container maxWidth="xl">
-                <Box mx={3}>
-                    <Grid2 container spacing={3}>
-                        <Grid2 size={{xs: 6}}>
-                            <DefaultEditor editorViewRef={editorViewRef} originalCode="" />
-                            <Box mt={3}>
-                                <Grid2 container spacing={3} alignItems="center">
-                                    <Grid2 minWidth={200}>
-                                        <Box>
-                                            <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
-                                                onClick={() => runCode()}>
-                                                Run Code
-                                            </GreenPrimaryButton>
-                                        </Box>
-                                    </Grid2>
-                                    <Grid2 minWidth={200}>
-                                        <Box>
-                                            <RedPrimaryButton fullWidth disabled={!pyodideState.executing || !pyodideState.ready}
-                                            onClick={() => cancelCode()}>
-                                                Cancel Run
-                                            </RedPrimaryButton>
-                                        </Box>
-                                    </Grid2>
-                                    <Grid2 flex={1} />
-                                    <EditorFullScreenDialog editorViewRef={editorViewRef} />
-                                </Grid2>
-                            </Box>
-                        </Grid2>
-                        <Grid2 size={{xs: 6}} position="relative">
-                            <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} clearCount={0} />
-                            <DefaultErrorDisplay error={executionError} />
-                        </Grid2>
+            <Box mx={3}>
+                <Grid2 container spacing={3}>
+                    <Grid2 position="relative">
+                        <ResizableBox
+                            width={editorWidth}
+                            height={Infinity}
+                            axis="x"
+                            resizeHandles={["e"]}
+                            minConstraints={[400, Infinity]}
+                            maxConstraints={[window.innerWidth-63, Infinity]}
+                            onResizeStop={(event, {size}) => updateEditorWidth(size.width)}
+                            handle={<Box sx={{
+                                position: "absolute",
+                                right: -24,
+                                top: 0,
+                                width: "30px",
+                                height: "100%",
+                                cursor: "ew-resize"
+                            }} />}>
+                                <Box>
+                                    <DefaultEditor editorViewRef={editorViewRef} originalCode="" />
+                                    <Box mt={3}>
+                                        <Grid2 container spacing={3} alignItems="center">
+                                            <Grid2 minWidth={200}>
+                                                <Box>
+                                                    <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
+                                                        onClick={() => runCode()}>
+                                                        Run Code
+                                                    </GreenPrimaryButton>
+                                                </Box>
+                                            </Grid2>
+                                            <Grid2 minWidth={200}>
+                                                <Box>
+                                                    <RedPrimaryButton fullWidth disabled={!pyodideState.executing || !pyodideState.ready}
+                                                    onClick={() => cancelCode()}>
+                                                        Cancel Run
+                                                    </RedPrimaryButton>
+                                                </Box>
+                                            </Grid2>
+                                            <Grid2 flex={1} />
+                                            <Undo editorViewRef={editorViewRef} />
+                                            <EditorFullScreenDialog editorViewRef={editorViewRef} />
+                                        </Grid2>
+                                    </Box>
+                                </Box>
+                        </ResizableBox>
                     </Grid2>
-                </Box>
-            </Container>
+                    <Grid2 position="relative" minWidth={300} flex={1}>
+                        <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} clearCount={0} />
+                        <DefaultErrorDisplay error={executionError} />
+                    </Grid2>
+                </Grid2>
+            </Box>
         </Box>
     )
 }
