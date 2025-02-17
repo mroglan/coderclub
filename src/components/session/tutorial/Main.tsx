@@ -19,6 +19,7 @@ import CachedIcon from '@mui/icons-material/Cached';
 import EditorFullScreenDialog from "@/components/codingUtils/EditorFullScreenDialog";
 import Link from "next/link";
 import { ResizableBox } from "react-resizable"
+import Undo from "@/components/codingUtils/Undo";
 
 
 export default function Main({data, type}: Props) {
@@ -395,6 +396,7 @@ export default function Main({data, type}: Props) {
                                             </Box>
                                         </Grid2>
                                         <Grid2 flex={1} />
+                                        <Undo editorViewRef={editorViewRef} />
                                         <EditorFullScreenDialog editorViewRef={editorViewRef} />
                                     </Grid2>
                                 </Box>
