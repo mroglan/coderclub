@@ -41,11 +41,12 @@ interface DraggableChipProps {
     type: string;
     item: {
         text: string;
-    }
+    };
+    editorViewRef: RefObject<EditorView|null>;
 }
 
 
-function DraggableChip({type, item}: DraggableChipProps) {
+function DraggableChip({type, item, editorViewRef}: DraggableChipProps) {
 
     const [{ isDragging }, drag] = useDrag(() => ({
         type: "DragItem",
@@ -55,7 +56,15 @@ function DraggableChip({type, item}: DraggableChipProps) {
         }),
     }));
 
-    
+    const handleClick = () => {
+        const t = editorViewRef.current.state.update({
+            changes: {
+                from: editorViewRef.current.state.selection.main.head,
+                insert: item.text
+            }
+        })
+        editorViewRef.current.dispatch(t)
+    }
 
     return (
         <Chip ref={drag as any} label={item.text} style={{
@@ -64,7 +73,7 @@ function DraggableChip({type, item}: DraggableChipProps) {
             cursor: "pointer",
             fontSize: "1.5rem",
             padding: "16px 16px"
-        }} variant="outlined" />
+        }} variant="outlined" onClick={handleClick} />
     )
 }
 
@@ -174,7 +183,7 @@ export function DefaultEditor({originalCode, editorViewRef, height, dragItems}: 
                                                 <Box mb={1} ml={1}>
                                                     {dItems[key].map(item => (
                                                         <Box key={item.text} mt={1}>
-                                                            <DraggableChip type={key} item={item} />
+                                                            <DraggableChip type={key} item={item} editorViewRef={editorViewRef} />
                                                         </Box>
                                                     ))}
                                                 </Box>
