@@ -1,4 +1,4 @@
-import { DefaultEditor, EditorTabs } from "@/components/codingUtils/Editor";
+import { DefaultEditor, EditorTabs, EditorWrapper, LowerToolbar } from "@/components/codingUtils/Editor";
 import { DefaultErrorDisplay } from "@/components/codingUtils/ErrorDisplay";
 import { Terminal } from "@/components/codingUtils/Output";
 import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
@@ -20,6 +20,7 @@ import EditorFullScreenDialog from "@/components/codingUtils/EditorFullScreenDia
 import Link from "next/link";
 import { ResizableBox } from "react-resizable"
 import Undo from "@/components/codingUtils/Undo";
+import { usePyodide } from "@/components/codingUtils/hooks";
 
 
 export default function Main({data, type}: Props) {
@@ -53,49 +54,10 @@ export default function Main({data, type}: Props) {
         return ["My Code", "Solution"]
     }, [type])
 
-
-    const [pyodideWorker, setPyodideWorker] = useState<WorkerManager|null>(null)
-    const [pyodideState, setPyodideState] = useState({
-        ready: false,
-        executing: false,
-    })
-    const [executionError, setExecutionError] = useState("")
+    const pyodide = usePyodide()
     const [clearCount, setClearCount] = useState(0)
 
-    const pyodideListener = (event: MessageEvent) => {
-        if (event.data.type === "ready") {
-            setPyodideState({ready: true, executing: false})
-        }
-        if (event.data.type === "result" || event.data.type === "error") {
-            console.log("setting pyodide state executing false")
-            setPyodideState({ready: true, executing: false})
-        }
-        if (event.data.type === "error") {
-            console.log("saving error")
-            setExecutionError(event.data.error)
-        }
-    }
-
-    const setupPyodide = () => {
-        const worker = new WorkerManager("/pyodide.js")
-        worker.addListener(pyodideListener)
-        setPyodideWorker(worker)
-    }
-
-    useEffect(() => {
-        if (pyodideWorker) return
-        setupPyodide()
-    }, [])
-
-
     const editorViewRef = useRef<EditorView>(null);
-
-    const [editorWidth, setEditorWidth] = useState(parseInt(localStorage.getItem("editorWidth") || "600"))
-
-    const updateEditorWidth = (size: number) => {
-        setEditorWidth(size)
-        localStorage.setItem("editorWidth", size.toString())
-    }
 
     const [selectedTab, setSelectedTab] = useState("My Code")
 
@@ -200,11 +162,6 @@ export default function Main({data, type}: Props) {
         }
         lastRunTime.current = date
 
-        if (!pyodideWorker) {
-            console.log("How are we here!! There is no pyodide Worker!")
-            return
-        }
-
         if (!editorViewRef.current) {
             console.log("No editorViewRef!")
             return
@@ -216,20 +173,8 @@ export default function Main({data, type}: Props) {
             updateCodeProgress()
         }
 
-        pyodideWorker.postMessage({
-            type: "execute",
-            code: adjScript
-        })
-        setPyodideState({...pyodideState, executing: true})
-        setExecutionError("")
+        pyodide.executeCode(adjScript)
     }
-
-    const cancelCode = async () => {
-        pyodideWorker.terminate()
-        setPyodideState({ready: false, executing: false})
-        setupPyodide()
-    }
-
 
     const saveProgressLocally = () => {
         // TODO: eventually save this to localStorage as well and don't reload it when user refreshes page
@@ -329,84 +274,49 @@ export default function Main({data, type}: Props) {
                 </Box>
                 <Grid2 container spacing={3} display={router.query.step === "Tutorial Complete!" ? "none" : "flex"}>
                     <Grid2>
-                        <ResizableBox
-                            width={editorWidth}
-                            height={Infinity}
-                            axis="x"
-                            resizeHandles={["e"]}
-                            minConstraints={[400, Infinity]}
-                            maxConstraints={[window.innerWidth-63, Infinity]}
-                            onResizeStop={(event, {size}) => updateEditorWidth(size.width)}
-                            handle={<Box sx={{
-                                position: "absolute",
-                                right: -24,
-                                top: 0,
-                                width: "30px",
-                                height: "100%",
-                                cursor: "ew-resize"
-                            }} />}>
-                            <Box>
-                                <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
-                                <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}
-                                    position="relative">
+                        <EditorWrapper
+                            main={
+                                <>
+                                    <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={changeTab} />
+                                    <Box display={selectedTab === "Student Code" && !studentCodeToShow ? "none" : "default"}
+                                        position="relative">
+                                        {
+                                            type == "student" && selectedTab == "Solution" && !tutorial.unlockSolutions.includes(router.query.step as string) 
+                                            && <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} zIndex={10}>
+                                                <IconButton color="success" sx={{animation: checkingForSolution ? "rotate 5s infinite linear": "none"}}
+                                                disabled={checkingForSolution} onClick={loadSolution}>
+                                                    <CachedIcon sx={{fontSize: 100}} />
+                                                </IconButton>
+                                            </Box>
+                                        }
+                                        <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
+                                            editorViewRef={editorViewRef} />
+                                    </Box>
                                     {
-                                        type == "student" && selectedTab == "Solution" && !tutorial.unlockSolutions.includes(router.query.step as string) 
-                                        && <Box position="absolute" top="50%" left="50%" sx={{transform: "translate(-50%, -50%)"}} zIndex={10}>
-                                            <IconButton color="success" sx={{animation: checkingForSolution ? "rotate 5s infinite linear": "none"}}
-                                            disabled={checkingForSolution} onClick={loadSolution}>
-                                                <CachedIcon sx={{fontSize: 100}} />
-                                            </IconButton>
+                                        selectedTab === "Student Code" && !studentCodeToShow && <Box
+                                        bgcolor="#fff" p={3}>
+                                            <Grid2 container spacing={3} justifyContent="space-around">
+                                                {(data as TeacherData).students.map(student => (
+                                                    <Grid2 key={student.name} sx={{cursor: "pointer"}}>
+                                                        <Box onClick={() => displayStudentCode(student.id)}>
+                                                            <Typography variant="body1" color="primary">
+                                                                {student.name}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Grid2>
+                                                ))}
+                                            </Grid2>
                                         </Box>
                                     }
-                                    <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
-                                        editorViewRef={editorViewRef} />
-                                </Box>
-                                {
-                                    selectedTab === "Student Code" && !studentCodeToShow && <Box
-                                    bgcolor="#fff" p={3}>
-                                        <Grid2 container spacing={3} justifyContent="space-around">
-                                            {(data as TeacherData).students.map(student => (
-                                                <Grid2 key={student.name} sx={{cursor: "pointer"}}>
-                                                    <Box onClick={() => displayStudentCode(student.id)}>
-                                                        <Typography variant="body1" color="primary">
-                                                            {student.name}
-                                                        </Typography>
-                                                    </Box>
-                                                </Grid2>
-                                            ))}
-                                        </Grid2>
-                                    </Box>
-                                }
-                                <Box mt={3}>
-                                    <Grid2 container spacing={3} alignItems="center">
-                                        <Grid2 minWidth={200}>
-                                            <Box>
-                                                <GreenPrimaryButton fullWidth disabled={pyodideState.executing || !pyodideState.ready}
-                                                    onClick={() => runCode()}>
-                                                    Run Code
-                                                </GreenPrimaryButton>
-                                            </Box>
-                                        </Grid2>
-                                        <Grid2 minWidth={200}>
-                                            <Box>
-                                                <RedPrimaryButton fullWidth disabled={!pyodideState.executing || !pyodideState.ready}
-                                                onClick={() => cancelCode()}>
-                                                    Cancel Run
-                                                </RedPrimaryButton>
-                                            </Box>
-                                        </Grid2>
-                                        <Grid2 flex={1} />
-                                        <Undo editorViewRef={editorViewRef} />
-                                        <EditorFullScreenDialog editorViewRef={editorViewRef} />
-                                    </Grid2>
-                                </Box>
-                            </Box>
-                        </ResizableBox>
+                                </>
+                            }
+                            lowerToolbar={<LowerToolbar runCode={runCode} pyodide={pyodide} editorViewRef={editorViewRef} />}
+                        />
                     </Grid2>
                     <Grid2 flex={1} minWidth={300} position="relative">
                         <Box mt={3}>
-                            <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState} clearCount={clearCount} height={540} />
-                            <DefaultErrorDisplay error={executionError} />
+                            <Terminal pyodideWorker={pyodide.manager} pyodideState={pyodide.state} clearCount={clearCount} height={540} />
+                            <DefaultErrorDisplay error={pyodide.state.executionError} />
                         </Box>
                     </Grid2>
                 </Grid2>

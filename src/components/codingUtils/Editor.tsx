@@ -1,5 +1,6 @@
 import { Box, Chip, Grid2, Paper, Typography } from "@mui/material";
-import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, JSX, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
+import { usePyodide } from "./hooks"
 import { EditorView, keymap } from "@codemirror/view";
 import { indentMore, indentLess } from "@codemirror/commands";
 import { python } from "@codemirror/lang-python";
@@ -7,6 +8,12 @@ import { EditorState } from "@codemirror/state";
 import { basicSetup } from "codemirror";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { ResizableBox } from "react-resizable";
+import WorkerManager from "./WorkerManager";
+import { GreenPrimaryButton, RedPrimaryButton } from "../misc/buttons";
+import Undo from "./Undo";
+import EditorFullScreenDialog from "./EditorFullScreenDialog";
+import { ScriptAdjustments } from "./scriptAdjustments";
 
 
 const DRAG_COLORS = {
@@ -199,6 +206,92 @@ export function DefaultEditor({originalCode, editorViewRef, height, dragItems}: 
                     </Box>
                 </Paper>
             </DndProvider>
+        </Box>
+    )
+}
+
+
+interface EditorWrapperProps {
+    main: JSX.Element;
+    lowerToolbar: JSX.Element;
+}
+
+
+export function EditorWrapper({main, lowerToolbar}: EditorWrapperProps) {
+
+    const [editorWidth, setEditorWidth] = useState(parseInt(localStorage.getItem("editorWidth") || "600"))
+
+    const updateEditorWidth = (size: number) => {
+        setEditorWidth(size)
+        localStorage.setItem("editorWidth", size.toString())
+    }
+
+    return (
+        <ResizableBox
+            width={editorWidth}
+            height={Infinity}
+            axis="x"
+            resizeHandles={["e"]}
+            minConstraints={[400, Infinity]}
+            maxConstraints={[window.innerWidth-63, Infinity]}
+            onResizeStop={(event, {size}) => updateEditorWidth(size.width)}
+            handle={<Box sx={{
+                position: "absolute",
+                right: -24,
+                top: 0,
+                width: "30px",
+                height: "100%",
+                cursor: "ew-resize"
+            }} />}>
+            <Box>
+                {main}
+                {lowerToolbar}
+            </Box>
+        </ResizableBox>
+    )
+}
+
+
+interface LowerToolbarProps {
+    pyodide: ReturnType<typeof usePyodide>;
+    editorViewRef: RefObject<EditorView>;
+    runCode?: () => void;
+}
+
+
+export function LowerToolbar({pyodide, editorViewRef, runCode}: LowerToolbarProps) {
+
+    const defaultRunCode = () => {
+        if (!editorViewRef.current) {
+            console.log("No editorViewRef!")
+            return
+        }
+        pyodide.executeCode(new ScriptAdjustments(editorViewRef.current.state.doc.toString()).output())
+    }
+
+    return (
+        <Box mt={3}>
+            <Grid2 container spacing={3} alignItems="center">
+                <Grid2 minWidth={200}>
+                    <Box>
+                        <GreenPrimaryButton fullWidth disabled={pyodide.state.executing || !pyodide.state.ready}
+                            onClick={() => runCode ? runCode() : defaultRunCode()}>
+                            Run Code
+                        </GreenPrimaryButton>
+                    </Box>
+                </Grid2>
+                <Grid2 minWidth={200}>
+                    <Box>
+                        <RedPrimaryButton fullWidth disabled={!pyodide.state.executing || !pyodide.state.ready}
+                        onClick={() => pyodide.restart()}>
+                            Cancel Run
+                        </RedPrimaryButton>
+                    </Box>
+                </Grid2>
+                <Grid2 flex={1} />
+                <Undo editorViewRef={editorViewRef} />
+                <EditorFullScreenDialog editorViewRef={editorViewRef} />
+            </Grid2>
         </Box>
     )
 }
