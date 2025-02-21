@@ -214,10 +214,11 @@ export function DefaultEditor({originalCode, editorViewRef, height, dragItems}: 
 interface EditorWrapperProps {
     main: JSX.Element;
     lowerToolbar: JSX.Element;
+    upperTabs?: JSX.Element;
 }
 
 
-export function EditorWrapper({main, lowerToolbar}: EditorWrapperProps) {
+export function EditorWrapper({main, lowerToolbar, upperTabs}: EditorWrapperProps) {
 
     const [editorWidth, setEditorWidth] = useState(parseInt(localStorage.getItem("editorWidth") || "600"))
 
@@ -244,6 +245,7 @@ export function EditorWrapper({main, lowerToolbar}: EditorWrapperProps) {
                 cursor: "ew-resize"
             }} />}>
             <Box>
+                {upperTabs}
                 {main}
                 {lowerToolbar}
             </Box>
