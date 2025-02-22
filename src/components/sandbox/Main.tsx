@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { Terminal } from "../codingUtils/Output";
 import { DefaultErrorDisplay } from "../codingUtils/ErrorDisplay";
-import { usePyodide } from "../codingUtils/hooks";
+import { useImages, usePyodide } from "../codingUtils/hooks";
 import { Environment } from "@/utils/constants";
 import EnvironmentSelector from "../codingUtils/EnvironmentSelector";
+import ImageEditor from "../codingUtils/Images";
 
 
 export default function Main() {
@@ -28,6 +29,8 @@ export default function Main() {
 
     const pyodide = usePyodide()
 
+    const images = useImages()
+
     return (
         <Box my={3}>
             <Box mx={3}>
@@ -40,7 +43,11 @@ export default function Main() {
                             main={
                             <>
                                 {tabs && <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />}
-                                <DefaultEditor editorViewRef={editorViewRef} originalCode="" />
+                                {
+                                    selectedTab === "Images" ?
+                                    <ImageEditor images={images} /> :
+                                    <DefaultEditor editorViewRef={editorViewRef} originalCode="" />
+                                }
                             </>
                             } 
                             lowerToolbar={<LowerToolbar pyodide={pyodide} editorViewRef={editorViewRef} />}

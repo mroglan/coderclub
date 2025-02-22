@@ -4,13 +4,14 @@ import Link from 'next/link';
 interface LinkProps extends TypographyProps {
     href: string;
     as?: string;
+    target?: string;
     children: React.ReactNode;
 }
 
-export function PrimaryLink({children, href, as, ...typographyProps}: LinkProps) {
+export function PrimaryLink({children, href, as, target, ...typographyProps}: LinkProps) {
 
     return (
-        <Link href={href} as={as}>
+        <Link href={href} as={as} target={target}>
             <Typography sx={{
                 transition: "color 100ms",
                 "&:hover": {

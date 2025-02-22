@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import WorkerManager from "./WorkerManager"
 import { ScriptAdjustments } from "./scriptAdjustments"
 
@@ -47,5 +47,47 @@ export function usePyodide() {
 
     return {
         manager, state, restart, executeCode
+    }
+}
+
+
+export function useImages() {
+
+    const [meta, setMeta] = useState({
+        image: "",
+        resolution: 0
+    })
+    const [images, setImages] = useState([])
+
+    const names = useMemo(() => images.map(img => img.name), [images])
+
+    const importJSON = (data) => {
+        if (!data.meta?.image || !data.frames || Object.keys(data.frames).length < 1) {
+            return "Invalid JSON."
+        }
+        const image = data.meta.image
+        const resolution = (Object.values(data.frames)[0] as any).frame.w
+        const imgs = Object.keys(data.frames).map(key => (
+            {
+                name: key.split(".")[0].replace(" ", "_"),
+                x: data.frames[key].frame.x,
+                y: data.frames[key].frame.y
+            }
+        ))
+
+        setMeta({image, resolution})
+        setImages(imgs)
+        return ""
+    }
+
+    const updateName = (name: string, i: number) => {
+        if (names.includes(name)) return
+        const copy = [...images]
+        copy[i].name = name
+        setImages(copy)
+    }
+
+    return {
+        names, meta, images, importJSON, updateName
     }
 }

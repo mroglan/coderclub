@@ -176,7 +176,7 @@ export function DefaultEditor({originalCode, editorViewRef, height, dragItems}: 
                 <Paper id="my-dnd-root" elevation={5}>
                     <Box pt={1}>
                         <Grid2 container wrap="nowrap">
-                            <Grid2 width={200} sx={{overflowY: "scroll"}}>
+                            <Grid2 height={height || "500px"} width={200} sx={{overflowY: "scroll"}}>
                                 <Box ml={0.5}>
                                     {Object.keys(dItems).map(key => {
                                         if (dItems[key].length === 0) return null
