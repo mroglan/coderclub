@@ -18,9 +18,11 @@ const loadPyodideInstance = async () => {
     })
 
     pyodide.globals.set("input", async (prompt) => {
+        const p = [...self.printMsg, `[prompt] ${prompt}`].join("\n")
+        self.printMsg = []
         return new Promise((resolve) => {
             self.inputResolver = resolve
-            self.postMessage({type: "input", prompt})
+            self.postMessage({type: "input", prompt: p})
         })
     })
 

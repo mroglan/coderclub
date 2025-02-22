@@ -1,10 +1,12 @@
-import { Box, Grid2, TextField } from "@mui/material";
+import { Box, Grid2, TextField, Typography } from "@mui/material";
 import { useMemo, useRef, useState } from "react";
 import WorkerManager from "./WorkerManager";
 import { GreenPrimaryButton } from "../misc/buttons";
+import { Environment } from "@/utils/constants";
+import { EditorTabs } from "./Editor";
 
 
-interface Props {
+interface TerminalProps {
     pyodideWorker: WorkerManager|null;
     pyodideState: {
         ready: boolean;
@@ -15,11 +17,9 @@ interface Props {
 }
 
 
-export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Props) {
+export function Terminal({pyodideWorker, pyodideState, clearCount, height}: TerminalProps) {
 
     const [output, setOutput] = useState<string[]>([])
-    const [waitingForInput, setWaitingForInput] = useState(false)
-    const [input, setInput] = useState("")
 
     const printLength = useRef<number>(0)
 
@@ -38,17 +38,15 @@ export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Prop
         }
         if (event.data.type === "input") {
             setOutput((prev) => [...prev, event.data.prompt as string])
-            setWaitingForInput(true)
-            setInput("")
         }
     }
     
     useMemo(() => {
         if (!pyodideWorker) return
 
-        if (pyodideWorker.numListeners() > 1) return
+        if (pyodideWorker.listenerExists("terminal")) return
 
-        pyodideWorker.addListener(listener)
+        pyodideWorker.addListener(listener, "terminal")
 
     }, [pyodideWorker])
 
@@ -58,24 +56,12 @@ export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Prop
         if (pyodideState.executing) {
             setOutput([])
             printLength.current = 0
-        } else {
-            setWaitingForInput(false)
-            setInput("")
-        }
+        } 
     }, [pyodideState])
 
     useMemo(() => {
         setOutput([])
     }, [clearCount])
-
-    const submitInput = () => {
-        pyodideWorker.postMessage({
-            type: "input_response",
-            value: input
-        })
-        setWaitingForInput(false)
-        setInput("")
-    }
 
     console.log('output', output)
 
@@ -88,7 +74,83 @@ export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Prop
                     </Box>
                 ))}
             </Box>
-            {waitingForInput && <Box mt={1}>
+        </Box>
+    )
+}
+
+
+interface OutputManagerProps extends TerminalProps {
+    env: string;
+}
+
+
+export function OutputManager({env, pyodideWorker, pyodideState, clearCount, height}: OutputManagerProps) {
+
+    const [waitingForInput, setWaitingForInput] = useState(false)
+    const [input, setInput] = useState("")
+    const [prompt, setPrompt] = useState("")
+
+    const [selectedTab, setSelectedTab] = useState("Console")
+
+    const tabs = useMemo(() => {
+        if (env !== Environment.CONSOLE) {
+            return ["Console", "Canvas"]
+        }
+        return null
+    }, [env])
+
+    useMemo(() => setSelectedTab("Console"), [env])
+
+    const listener = (event: MessageEvent) => {
+        if (event.data.type === "input") {
+            setPrompt(event.data.prompt.split("\n").at(-1).replace("[prompt] ", ""))
+            setWaitingForInput(true)
+            setInput("")
+        }
+    }
+
+    useMemo(() => {
+        if (!pyodideWorker) return
+
+        if (pyodideWorker.listenerExists("outputManager")) return
+
+        pyodideWorker.addListener(listener, "outputManager")
+
+    }, [pyodideWorker])
+
+    useMemo(() => {
+        setWaitingForInput(false)
+    }, [pyodideState])
+
+    const submitInput = () => {
+        pyodideWorker.postMessage({
+            type: "input_response",
+            value: input
+        })
+        setWaitingForInput(false)
+    }
+
+    return (
+        <Box>
+            {tabs && 
+            <Box mb="10px">
+                <EditorTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} tabs={tabs} />
+            </Box>
+            }
+            <Box display={selectedTab === "Console" ? undefined : "none"}>
+                <Terminal pyodideWorker={pyodideWorker} pyodideState={pyodideState}
+                    clearCount={clearCount} height={height} />
+            </Box>
+            {env !== Environment.CONSOLE && 
+            <Box display={selectedTab === "Canvas" ? undefined : "none"} >
+                canvas
+            </Box>}
+            {waitingForInput && <Box>
+                <Box>
+                    <Typography variant="body1" color="success.dark" fontSize="1.3rem">
+                        {prompt}
+                    </Typography>
+                </Box>
                 <Grid2 container spacing={3} alignItems="center">
                     <Grid2 flex={1}>
                         <TextField fullWidth value={input} InputProps={{
