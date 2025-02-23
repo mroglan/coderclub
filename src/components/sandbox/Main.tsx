@@ -44,7 +44,7 @@ export default function Main() {
                             <>
                                 {tabs && <EditorTabs tabs={tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />}
                                 <Box display={selectedTab === "Images" ? undefined : "none"} >
-                                    <ImageEditor images={images} /> :
+                                    <ImageEditor images={images} />
                                 </Box>
                                 <Box display={selectedTab === "My Code" ? undefined : "none"}>
                                     <DefaultEditor editorViewRef={editorViewRef} originalCode="" />
@@ -55,7 +55,6 @@ export default function Main() {
                         />
                     </Grid2>
                     <Grid2 position="relative" minWidth={300} flex={1}>
-                        {/* <Terminal pyodideWorker={pyodide.manager} pyodideState={pyodide.state} clearCount={0} /> */}
                         <OutputManager env={env} pyodideWorker={pyodide.manager} pyodideState={pyodide.state}
                             clearCount={0} images={images} />
                         <DefaultErrorDisplay error={pyodide.state.executionError} />

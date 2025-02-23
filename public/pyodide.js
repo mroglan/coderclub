@@ -7,14 +7,18 @@ const loadPyodideInstance = async () => {
 
     self.printMsg = []
     self.lastPrintSend = Date.now()
+    self.numPrints = 0
 
     pyodide.globals.set("print", msg => {
-        self.printMsg.push(msg)
-        if (Date.now() - self.lastPrintSend < 100) return
+        // self.printMsg.push(msg)
+        // if (Date.now() - self.lastPrintSend < 100) return
+        self.numPrints += 1
+        if (self.numPrints > 5000) return
 
-        self.postMessage({type: "print", msg: self.printMsg.join("\n")})
-        self.printMsg = []
-        self.lastPrintSend = Date.now()
+        self.postMessage({type: "print", msg})
+        // self.postMessage({type: "print", msg: self.printMsg.join("\n")})
+        // self.printMsg = []
+        // self.lastPrintSend = Date.now()
     })
 
     pyodide.globals.set("input", async (prompt) => {

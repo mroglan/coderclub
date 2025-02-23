@@ -1,10 +1,10 @@
 import { DefaultEditor, EditorTabs, EditorWrapper, LowerToolbar } from "@/components/codingUtils/Editor";
 import { DefaultErrorDisplay } from "@/components/codingUtils/ErrorDisplay";
-import { Terminal } from "@/components/codingUtils/Output";
+import { OutputManager, Terminal } from "@/components/codingUtils/Output";
 import { ScriptAdjustments } from "@/components/codingUtils/scriptAdjustments";
 import WorkerManager from "@/components/codingUtils/WorkerManager";
 import { GreenPrimaryButton, PurpleLargeButton, PurplePrimaryButton, RedPrimaryButton } from "@/components/misc/buttons";
-import { TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
+import { TUTORIAL_ENVS, TUTORIAL_SOLUTIONS, TUTORIAL_STEPS, TUTORIAL_TEMPLATES } from "@/database/interfaces/SessionTutorial";
 import { Props, TeacherData } from "@/pages/session/[url_name]/tutorial/[tutorial_name]";
 import { EditorView } from "@codemirror/view";
 import { Box, Container, Grid2, IconButton, Typography } from "@mui/material";
@@ -20,7 +20,9 @@ import EditorFullScreenDialog from "@/components/codingUtils/EditorFullScreenDia
 import Link from "next/link";
 import { ResizableBox } from "react-resizable"
 import Undo from "@/components/codingUtils/Undo";
-import { usePyodide } from "@/components/codingUtils/hooks";
+import { useImages, usePyodide } from "@/components/codingUtils/hooks";
+import { Environment } from "@/utils/constants";
+import ImageEditor from "@/components/codingUtils/Images";
 
 
 export default function Main({data, type}: Props) {
@@ -48,13 +50,19 @@ export default function Main({data, type}: Props) {
     }, [router.query])
 
     const tabs = useMemo(() => {
+        let t = []
         if (type === "teacher") {
-            return ["My Code", "Student Code", "Solution"]
+            t = ["My Code", "Student Code", "Solution"]
         }
-        return ["My Code", "Solution"]
-    }, [type])
+        t = ["My Code", "Solution"]
+        if (TUTORIAL_ENVS[data.tutorial.name][router.query.step] !== Environment.CONSOLE) {
+            t.splice(1, 0, "Images")
+        }
+        return t
+    }, [type, router.query])
 
     const pyodide = usePyodide()
+    const images = useImages()
     const [clearCount, setClearCount] = useState(0)
 
     const editorViewRef = useRef<EditorView>(null);
@@ -167,7 +175,10 @@ export default function Main({data, type}: Props) {
             return
         }
 
-        const adjScript = new ScriptAdjustments(editorViewRef.current.state.doc.toString()).output()
+        const adjScript = new ScriptAdjustments(
+            editorViewRef.current.state.doc.toString(),
+            TUTORIAL_ENVS[data.tutorial.name][router.query.step]
+        ).output()
 
         if (selectedTab === "My Code") {
             updateCodeProgress()
@@ -272,6 +283,11 @@ export default function Main({data, type}: Props) {
                         </Grid2>
                     </Grid2>
                 </Box>
+                <Box display={router.query.step === "Tutorial Complete!" ? "none" : undefined}>
+                    <Typography variant="body1">
+                        Environment: {TUTORIAL_ENVS[data.tutorial.name][router.query.step]}
+                    </Typography>
+                </Box>
                 <Grid2 container spacing={3} display={router.query.step === "Tutorial Complete!" ? "none" : "flex"}>
                     <Grid2>
                         <EditorWrapper
@@ -289,8 +305,13 @@ export default function Main({data, type}: Props) {
                                                 </IconButton>
                                             </Box>
                                         }
-                                        <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
-                                            editorViewRef={editorViewRef} />
+                                        <Box display={selectedTab === "Images" ? undefined : "none"}>
+                                            <ImageEditor images={images} />
+                                        </Box>
+                                        <Box display={selectedTab === "My Code" ? undefined : "none"}>
+                                            <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
+                                                editorViewRef={editorViewRef} />
+                                        </Box>
                                     </Box>
                                     {
                                         selectedTab === "Student Code" && !studentCodeToShow && <Box
@@ -315,7 +336,9 @@ export default function Main({data, type}: Props) {
                     </Grid2>
                     <Grid2 flex={1} minWidth={300} position="relative">
                         <Box mt={3}>
-                            <Terminal pyodideWorker={pyodide.manager} pyodideState={pyodide.state} clearCount={clearCount} height={540} />
+                            <OutputManager env={TUTORIAL_ENVS[data.tutorial.name][router.query.step]}
+                                pyodideWorker={pyodide.manager} pyodideState={pyodide.state}
+                                clearCount={0} images={images} />
                             <DefaultErrorDisplay error={pyodide.state.executionError} />
                         </Box>
                     </Grid2>
