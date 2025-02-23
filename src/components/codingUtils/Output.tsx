@@ -25,6 +25,9 @@ export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Term
 
     const printLength = useRef<number>(0)
 
+    const containerRef = useRef<HTMLDivElement>(null)
+    const childRef = useRef<HTMLDivElement>(null)
+
     const listener = (event: MessageEvent) => {
         console.log("from antoher", event)
         if (printLength.current < 0) return
@@ -67,9 +70,20 @@ export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Term
 
     console.log('output', output)
 
+    useEffect(() => {
+        childRef.current.style.width = containerRef.current.clientWidth.toString() + "px"
+        const observer = new ResizeObserver(() => {
+            if (childRef.current) {
+                childRef.current.style.width = containerRef.current.clientWidth.toString() + "px"
+            }
+        })
+        observer.observe(containerRef.current)
+        return () => observer.disconnect()
+    }, [])
+
     return (
-        <Box>
-            <Box height={height || "500px"} border="1px solid #000" p={1} overflow="scroll">
+        <Box ref={containerRef}>
+            <Box ref={childRef} height={height || "500px"} border="1px solid #000" p={1} overflow="scroll">
                 {output.map((line, i) => (
                     <Box key={i} whiteSpace="pre" fontSize="1.3rem">
                         {line}
