@@ -6,6 +6,7 @@ export class ScriptAdjustments {
     private env: string;
 
     private getCanvasDataMacro = "__canvas_data = (await __get_canvas_state()).to_py()"
+    private clearPrintQueueMacro = "__clear_print_queue()"
 
     constructor(script: string, env?: string) {
         this.script = script
@@ -22,6 +23,7 @@ export class ScriptAdjustments {
 
     private waitForAllObjectsToExitCanvas(s: string, except: string[]) {
         return s += `\n
+${this.clearPrintQueueMacro}
 ${this.getCanvasDataMacro}
 while True:
     names = list(map(lambda img: img["name"], __canvas_data["images"].values()))
@@ -35,6 +37,7 @@ while True:
         if (this.env === Environment.AVATAR) {
             return this.waitForAllObjectsToExitCanvas(s, ["avatar"])
         }
+        return s
     }
 
     output() {

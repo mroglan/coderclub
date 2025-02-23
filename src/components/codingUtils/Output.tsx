@@ -120,27 +120,58 @@ function AvatarCanvas({images, pyodideWorker, pyodideState, height}: AvatarCanva
                         w: .20,
                         h: .20
                     },
-                    2: {
-                        name: "fire",
-                        movement: "constant",
-                        x: .5, y: .5, w: .10, h: .10,
-                        vel: {
-                            x: .1, y: 0
-                        },
-                        autodelete: true
-                    }
+                    // 2: {
+                    //     name: "fire",
+                    //     movement: "constant",
+                    //     x: .5, y: .5, w: .10, h: .10,
+                    //     vel: {
+                    //         x: .1, y: 0
+                    //     },
+                    //     autodelete: true
+                    // }
                 }
-                // fire: {
-                //     type: "image",
-                //     movement: "constant",
-                //     x: .5, y: .5, w: .10, h: .10,
-                //     vel: {
-                //         x: .1, y: 0
-                //     }
-                // }
             }
         }
     }, [pyodideState])
+
+    const listener = (event: MessageEvent) => {
+        if (event.data.type !== "print") return
+        if (Object.keys(data.current.images).length > 100) return
+        console.log('received print', event.data.msg)
+        const cmds = event.data.msg.split("\n")
+        for (let cmd of cmds) {
+            cmd = cmd.trim().split(" ")
+            if (!["fire", "water", "earth", "air"].includes(cmd.at(0))) continue
+            let dir = cmd.at(1)
+            let f = []
+            if (dir == "up") f = [0,-1]
+            else if (dir == "left") f = [-1, 0]
+            else if (dir == "down") f = [0, 1]
+            else f = [1, 0]
+            const d = {
+                name: cmd[0],
+                movement: "constant",
+                x: .5, y: .5, w: .1, h: .1,
+                vel: {
+                    x: .2 * f[0],
+                    y: .2 * f[1]
+                },
+                autodelete: true
+            }
+            const id = Math.random().toString(16).slice(2)
+            data.current.images[id] = d
+        }
+    }
+
+    useEffect(() => {
+        if (!pyodideWorker) return
+
+        if (pyodideWorker.listenerExists("avatarCanvas")) return
+
+        pyodideWorker.addListener(listener, "avatarCanvas")
+
+        return () => pyodideWorker.removeListener(listener, "avatarCanvas")
+    }, [pyodideWorker])
 
     useEffect(() => {
         const observer = new ResizeObserver(() => {

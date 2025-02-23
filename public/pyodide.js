@@ -36,6 +36,13 @@ const loadPyodideInstance = async () => {
         })
     })
 
+    pyodide.globals.set("__clear_print_queue", () => {
+        if (self.printMsg.length < 1) return
+        self.postMessage({type: "print", msg: self.printMsg.join("\n")})
+        self.printMsg = []
+        self.lastPrintSend = Date.now()
+    })
+
     self.postMessage({type: "ready"}); // Notify main thread that Pyodide is ready
 };
 

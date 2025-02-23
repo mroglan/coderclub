@@ -102,8 +102,8 @@ export function useCanvas(pyodideManager: WorkerManager,
 
         if (x + w2 < 0) return true
         if (x - w2 > 1) return true
-        if (h + h2 < 0) return true
-        if (h - h2 > 1) return true
+        if (y + h2 < 0) return true
+        if (y - h2 > 1) return true
         return false
     }
 
