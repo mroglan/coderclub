@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import WorkerManager from "./WorkerManager"
 import { ScriptAdjustments } from "./scriptAdjustments"
 
@@ -89,5 +89,82 @@ export function useImages() {
 
     return {
         names, meta, images, importJSON, updateName
+    }
+}
+
+
+export function useCanvas(images: ReturnType<typeof useImages>, executing: boolean) {
+
+    const htmlImage = useMemo(() => {
+        const img = new Image()
+        if (images.meta.image) {
+            img.src = images.meta.image
+        }
+        return img
+    }, [images])
+
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+
+    const cancel = useRef<boolean>(false)
+    const lastAnimationTime = useRef<number>(null)
+    const data = useRef<any>({})
+
+    useMemo(() => {
+        if (!executing) {
+            cancel.current = true
+        }
+    }, [executing])
+
+    useEffect(() => {
+        if (!executing) return
+
+        cancel.current = false
+
+        const loop = (time: number) => {
+            if (cancel.current) {
+                data.current = {}
+                lastAnimationTime.current = null
+                return
+            }
+            if (!lastAnimationTime.current) {
+                lastAnimationTime.current = time
+                requestAnimationFrame(loop)
+                return
+            }
+            const delta = (time - lastAnimationTime.current) / 1000 // seconds since last animation
+            lastAnimationTime.current = time
+            
+            const ctx = canvasRef.current.getContext("2d")
+            const w = canvasRef.current.width
+            const h = canvasRef.current.height
+
+            ctx.clearRect(0, 0, w, h)
+
+            for (const key of Object.keys(data.current)) {
+                const drawing = data.current[key]
+                if (drawing.type === "image") {
+                    const props = images.images.find(img => img.name === key)
+                    if (drawing.movement === "static") {
+                        ctx.drawImage(
+                            htmlImage,
+                            props.x, props.y,
+                            images.meta.resolution, images.meta.resolution,
+                            drawing.x*w - (drawing.w*w / 2), drawing.y*h - (drawing.h*h / 2),
+                            drawing.w*w, drawing.h*h
+                        )
+                    }
+                }
+            }
+
+            console.log('finished animation')
+
+            requestAnimationFrame(loop)
+        }
+        canvasRef.current.getContext("2d").imageSmoothingEnabled = false
+        requestAnimationFrame(loop)
+    }, [executing]) 
+
+    return {
+        canvasRef, data
     }
 }

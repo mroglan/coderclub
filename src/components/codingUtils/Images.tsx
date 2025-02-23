@@ -114,6 +114,7 @@ export default function ImageEditor({images}: Props) {
                                                 sx:{textAlign: "center", input: { textAlign: "center", padding: 1 }, fontSize: "1.8rem" }}}
                                                 value={textFieldName} onChange={(e) => setTextFieldName(e.target.value)}
                                                 onBlur={(e) => images.updateName(e.target.value, selectedImage)}
+                                                disabled={images.names.length === 0}
                                             />
                                         </Grid2>
                                     </Grid2>

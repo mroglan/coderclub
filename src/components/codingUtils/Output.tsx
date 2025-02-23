@@ -1,9 +1,10 @@
 import { Box, Grid2, TextField, Typography } from "@mui/material";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import WorkerManager from "./WorkerManager";
 import { GreenPrimaryButton } from "../misc/buttons";
 import { Environment } from "@/utils/constants";
 import { EditorTabs } from "./Editor";
+import { useCanvas, useImages } from "./hooks";
 
 
 interface TerminalProps {
@@ -79,12 +80,76 @@ export function Terminal({pyodideWorker, pyodideState, clearCount, height}: Term
 }
 
 
-interface OutputManagerProps extends TerminalProps {
-    env: string;
+interface AvatarCanvasProps {
+    pyodideWorker: WorkerManager|null;
+    pyodideState: TerminalProps["pyodideState"];
+    height?: number;
+    images: ReturnType<typeof useImages>;
 }
 
 
-export function OutputManager({env, pyodideWorker, pyodideState, clearCount, height}: OutputManagerProps) {
+function AvatarCanvas({images, pyodideWorker, pyodideState, height}: AvatarCanvasProps) {
+
+    const {canvasRef, data} = useCanvas(images, pyodideState.executing)
+
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    const executingRef = useRef<boolean>(false)
+
+    useMemo(() => executingRef.current = pyodideState.executing, [pyodideState])
+
+    useMemo(() => {
+        if (pyodideState.executing) {
+            canvasRef.current.width = containerRef.current.clientWidth
+            canvasRef.current.height = containerRef.current.clientWidth
+        }
+    }, [pyodideState])
+
+    useMemo(() => {
+        if (pyodideState.executing && Object.keys(data.current).length < 1) {
+            data.current = {
+                avatar: {
+                    type: "image",
+                    movement: "static",
+                    x: .50,
+                    y: .50,
+                    w: .10,
+                    h: .10
+                }
+            }
+        }
+    }, [pyodideState])
+
+    useEffect(() => {
+        const observer = new ResizeObserver(() => {
+            if (!executingRef.current) {
+                canvasRef.current.width = 0
+                canvasRef.current.height = 0
+            }
+        })
+        observer.observe(containerRef.current)
+        return () => observer.disconnect()
+    }, [])
+
+    return (
+        <Box ref={containerRef} 
+        width={`min(calc(100vh - 250px), max(100%, ${height || "500px"}))`}
+        height="auto"
+        sx={{aspectRatio: "1/1"}} 
+        border="1px solid #000">
+            <canvas ref={canvasRef} />
+        </Box>
+    )
+}
+
+
+interface OutputManagerProps extends TerminalProps {
+    env: string;
+    images: ReturnType<typeof useImages>;
+}
+
+
+export function OutputManager({env, images, pyodideWorker, pyodideState, clearCount, height}: OutputManagerProps) {
 
     const [waitingForInput, setWaitingForInput] = useState(false)
     const [input, setInput] = useState("")
@@ -143,7 +208,8 @@ export function OutputManager({env, pyodideWorker, pyodideState, clearCount, hei
             </Box>
             {env !== Environment.CONSOLE && 
             <Box display={selectedTab === "Canvas" ? undefined : "none"} >
-                canvas
+                <AvatarCanvas images={images} pyodideWorker={pyodideWorker} pyodideState={pyodideState}
+                    height={height} />
             </Box>}
             {waitingForInput && <Box>
                 <Box>
