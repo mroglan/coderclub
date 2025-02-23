@@ -26,6 +26,16 @@ const loadPyodideInstance = async () => {
         })
     })
 
+    pyodide.globals.set("__get_canvas_state", async () => {
+        return new Promise(resolve => {
+            if (self.canvasState) {
+                resolve(self.canvasState)
+            } else {
+                self.canvasStateResolver = resolve
+            }
+        })
+    })
+
     self.postMessage({type: "ready"}); // Notify main thread that Pyodide is ready
 };
 
@@ -42,8 +52,20 @@ self.onmessage = async (event) => {
         return
     }
 
+    if (event.data.type === "canvas_state") {
+        if (self.canvasStateResolver) {
+            self.canvasStateResolver(event.data.value)
+            self.canvasStateResolver = null
+        } else {
+            self.canvasState = event.data.value
+        }
+    }
+
     if (event.data.type === "execute") {
         try {
+            self.canvasState = null
+            self.canvasStateResolver = null
+            self.inputResolver = null
             const result = await pyodide.runPythonAsync(event.data.code)
             if (self.printMsg.length > 0) {
                 self.postMessage({type: "print", msg: self.printMsg.join("\n")})

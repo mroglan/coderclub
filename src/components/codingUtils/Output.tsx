@@ -5,6 +5,7 @@ import { GreenPrimaryButton } from "../misc/buttons";
 import { Environment } from "@/utils/constants";
 import { EditorTabs } from "./Editor";
 import { useCanvas, useImages } from "./hooks";
+import { DEFAULT_IMAGES } from "./Images";
 
 
 interface TerminalProps {
@@ -90,7 +91,9 @@ interface AvatarCanvasProps {
 
 function AvatarCanvas({images, pyodideWorker, pyodideState, height}: AvatarCanvasProps) {
 
-    const {canvasRef, data} = useCanvas(images, pyodideState.executing)
+    const {canvasRef, data} = useCanvas(pyodideWorker, images, pyodideState.executing, {
+        image: DEFAULT_IMAGES.avatar
+    })
 
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -108,14 +111,33 @@ function AvatarCanvas({images, pyodideWorker, pyodideState, height}: AvatarCanva
     useMemo(() => {
         if (pyodideState.executing && Object.keys(data.current).length < 1) {
             data.current = {
-                avatar: {
-                    type: "image",
-                    movement: "static",
-                    x: .50,
-                    y: .50,
-                    w: .10,
-                    h: .10
+                images: {
+                    1: {
+                        name: "avatar",
+                        movement: "static",
+                        x: .50,
+                        y: .50,
+                        w: .20,
+                        h: .20
+                    },
+                    2: {
+                        name: "fire",
+                        movement: "constant",
+                        x: .5, y: .5, w: .10, h: .10,
+                        vel: {
+                            x: .1, y: 0
+                        },
+                        autodelete: true
+                    }
                 }
+                // fire: {
+                //     type: "image",
+                //     movement: "constant",
+                //     x: .5, y: .5, w: .10, h: .10,
+                //     vel: {
+                //         x: .1, y: 0
+                //     }
+                // }
             }
         }
     }, [pyodideState])

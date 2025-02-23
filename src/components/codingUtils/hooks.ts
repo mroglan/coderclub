@@ -93,7 +93,19 @@ export function useImages() {
 }
 
 
-export function useCanvas(images: ReturnType<typeof useImages>, executing: boolean) {
+export function useCanvas(pyodideManager: WorkerManager, 
+    images: ReturnType<typeof useImages>, executing: boolean, defaults: any = {}) {
+
+    const drawingOutOfBounds = (x, y, w, h) => {
+        const w2 = w/2
+        const h2 = h/2
+
+        if (x + w2 < 0) return true
+        if (x - w2 > 1) return true
+        if (h + h2 < 0) return true
+        if (h - h2 > 1) return true
+        return false
+    }
 
     const htmlImage = useMemo(() => {
         const img = new Image()
@@ -103,10 +115,18 @@ export function useCanvas(images: ReturnType<typeof useImages>, executing: boole
         return img
     }, [images])
 
+    const defaultHtmlImage = useMemo(() => {
+        if (!defaults.image) return
+        const img = new Image()
+        img.src = defaults.image.meta.image
+        return img
+    }, [defaults])
+
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
     const cancel = useRef<boolean>(false)
     const lastAnimationTime = useRef<number>(null)
+    const lastWorkerUpdate = useRef<number>(0)
     const data = useRef<any>({})
 
     useMemo(() => {
@@ -140,23 +160,60 @@ export function useCanvas(images: ReturnType<typeof useImages>, executing: boole
 
             ctx.clearRect(0, 0, w, h)
 
-            for (const key of Object.keys(data.current)) {
-                const drawing = data.current[key]
-                if (drawing.type === "image") {
-                    const props = images.images.find(img => img.name === key)
-                    if (drawing.movement === "static") {
-                        ctx.drawImage(
-                            htmlImage,
-                            props.x, props.y,
-                            images.meta.resolution, images.meta.resolution,
-                            drawing.x*w - (drawing.w*w / 2), drawing.y*h - (drawing.h*h / 2),
-                            drawing.w*w, drawing.h*h
-                        )
+            for (const key of Object.keys(data.current.images || {})) {
+                const drawing = data.current.images[key]
+                let props = images.images.find(img => img.name === drawing.name)
+                let meta = images.meta
+                let img = htmlImage
+                if (!props) {
+                    props = defaults.image?.images.find(img => img.name === drawing.name)
+                    img = defaultHtmlImage
+                    meta = defaults.image?.meta
+                }
+                if (!props) {
+                    console.log("Image not found! Bad things will happen...")
+                }
+                if (drawing.movement === "static") {
+                    ctx.drawImage(
+                        img,
+                        props.x, props.y,
+                        meta.resolution, meta.resolution,
+                        drawing.x*w - (drawing.w*w / 2), drawing.y*h - (drawing.h*h / 2),
+                        drawing.w*w, drawing.h*h
+                    )
+                } else if (drawing.movement === "constant") {
+                    if (drawing.autodelete && drawingOutOfBounds(drawing.x, drawing.y, drawing.w, drawing.h)) {
+                        delete data.current.images[key]
+                        continue
                     }
+                    drawing.x += drawing.vel.x*delta
+                    drawing.y += drawing.vel.y*delta
+                    ctx.drawImage(
+                        img,
+                        props.x, props.y,
+                        meta.resolution, meta.resolution,
+                        drawing.x*w - (drawing.w*w / 2), drawing.y*h - (drawing.h*h / 2),
+                        drawing.w*w, drawing.h*h
+                    )
                 }
             }
 
-            console.log('finished animation')
+            if ((time - lastWorkerUpdate.current)/1000 > 1/60) {
+                lastWorkerUpdate.current = time
+                const msg:any = {}
+                msg.images = {}
+                for (const key of Object.keys(data.current.images)) {
+                    const d = data.current.images[key]
+                    msg.images[key] = {
+                        name: d.name,
+                        x: d.x, y: d.y, w: d.w, h: d.h
+                    }
+                }
+                pyodideManager.postMessage({
+                    type: "canvas_state",
+                    value: msg
+                })
+            }
 
             requestAnimationFrame(loop)
         }

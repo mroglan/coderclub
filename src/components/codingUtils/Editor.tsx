@@ -258,17 +258,18 @@ interface LowerToolbarProps {
     pyodide: ReturnType<typeof usePyodide>;
     editorViewRef: RefObject<EditorView>;
     runCode?: () => void;
+    env?: string;
 }
 
 
-export function LowerToolbar({pyodide, editorViewRef, runCode}: LowerToolbarProps) {
+export function LowerToolbar({pyodide, editorViewRef, runCode, env}: LowerToolbarProps) {
 
     const defaultRunCode = () => {
         if (!editorViewRef.current) {
             console.log("No editorViewRef!")
             return
         }
-        pyodide.executeCode(new ScriptAdjustments(editorViewRef.current.state.doc.toString()).output())
+        pyodide.executeCode(new ScriptAdjustments(editorViewRef.current.state.doc.toString(), env).output())
     }
 
     return (

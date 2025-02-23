@@ -51,7 +51,7 @@ export default function Main() {
                                 </Box>
                             </>
                             } 
-                            lowerToolbar={<LowerToolbar pyodide={pyodide} editorViewRef={editorViewRef} />}
+                            lowerToolbar={<LowerToolbar pyodide={pyodide} editorViewRef={editorViewRef} env={env} />}
                         />
                     </Grid2>
                     <Grid2 position="relative" minWidth={300} flex={1}>

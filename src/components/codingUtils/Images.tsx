@@ -5,6 +5,23 @@ import { PrimaryLink } from "../misc/links"
 import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
 
 
+export const DEFAULT_IMAGES = {
+    avatar: {
+        meta: {
+            image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAwCAYAAABwrHhvAAADMElEQVRYR+2WMWgUQRSG30kiJIgoJCZp4kWraKGSRhDktNA0dlfYSGxUEEECYhXJBc/GJgTEQhE8sDBwiGCjTTgEwU4tNIVozlgkMYIpJEI8HPeN9+bezs7MzoZdLoUDx+0N+/b/3vvfvL0ctHnlstCfHC+K0ngR9k0cgc/lN1CarsLUdFVp5Xu3ifrqH/k7dQASn5nrh5m5Abh6cin4LIcgCgc6Re3D70wAhFh8LMV2H7qiAH68uwNYkdzgWZl0lhWQALSwCpg9rSaA+pm2BQIfSBXAjGlhRVgFMgMA8h8VSJS+aa/y6AlQA6ZdAZUxgXAIOgW8ATMDECMjonR8qGXBywWAY2sA127BidFzQCcgEwAUN82WRuUjlB+cwnkQ0k19DojZHtFY64KOe3sArn8BuL0XGhe/Qeelr6hFcEo3VYDgBIjGzqcAs6+g4/12VYjGwQ0JwM9/6ChkMI7FZLEbpqrrueBbBN+y7HoDZtIDzWSw1Ly6+u/WcMog+0SPTLUHEik3b/4PsDUrUBselgOj+8YnWL+5X1lbmJ/3Ah46U5fxS6MbMPC8NQ8WnuUj8ZENLs6bikDiILg4jycQHSIEQOKUvQkA92wQJE7ZmwBwj0MoAJe4TyVc4q5KRADQd1orr/Pquu9oXV7brDCVfmIweAU3V3lxl7zSrXACYABBbAYA4wkiMQDPHh+UFIBnj/GpAZANeiPqFtgAyAZqRKsFba8A71y6dg0l2/nXnxPbhCZh057NArxXn4Cm+IgFeBOfBS4Qn0HkijcOIgqIg/AdxTYA5yj2LX+a93m93dIU1J+1NQEujx2W7/Ofp3/BjhddCvpu5a0X8Njyqox/2NcD51e+q/hKf2/8/wEuzstFIHEQXJzHE4gOESIiccreBIB7NggSp+xNALjHIRSAS9ynEi5xVyUiAOi7mgn3W/8NChf+/Te0WWEqPfcf+wGXboUTAANqTYjNAHDBxAAkTNVICsCz5z3hXQEbANmgN6JugQ2AqkKNaLWg7RXgnZvkFJDXtvhYC2gG8AloepjNApPfpviIBXgTnwW2DHDfZxC54o2DiALiIHxHsQ1AH8V/AWTKKE9CFzn4AAAAAElFTkSuQmCC",
+            resolution: 16
+        },
+        images: [
+            {name: "avatar", x: 16, y: 0},
+            {name: "fire", x: 0, y: 16},
+            {name: "water", x: 16, y: 16},
+            {name: "earth", x: 0, y: 32},
+            {name: "air", x: 16, y: 32}
+        ]
+    }
+}
+
+
 interface Props {
     images: ReturnType<typeof useImages>
 }

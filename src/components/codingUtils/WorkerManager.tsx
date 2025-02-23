@@ -23,8 +23,11 @@ export default class WorkerManager {
     if (name) this.listener_names.push(name)
   }
 
-  removeListener(listener: (event: MessageEvent) => void): void {
+  removeListener(listener: (event: MessageEvent) => void, name?: string): void {
     this.listeners.delete(listener);
+    if (name) {
+      this.listener_names = this.listener_names.filter(n => n !== name)
+    }
   }
 
   terminate(): void {
