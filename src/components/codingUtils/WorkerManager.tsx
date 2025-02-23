@@ -2,10 +2,12 @@
 export default class WorkerManager {
   private worker: Worker;
   private listeners: Set<(event: MessageEvent) => void>;
+  private listener_names: string[];
 
   constructor(path: string) {
     this.worker = new Worker(path, {type: "module"});
     this.listeners = new Set();
+    this.listener_names = []
 
     this.worker.onmessage = (event: MessageEvent) => {
       this.listeners.forEach((listener) => listener(event));
@@ -16,12 +18,16 @@ export default class WorkerManager {
     this.worker.postMessage(message);
   }
 
-  addListener(listener: (event: MessageEvent) => void): void {
+  addListener(listener: (event: MessageEvent) => void, name?: string): void {
     this.listeners.add(listener);
+    if (name) this.listener_names.push(name)
   }
 
-  removeListener(listener: (event: MessageEvent) => void): void {
+  removeListener(listener: (event: MessageEvent) => void, name?: string): void {
     this.listeners.delete(listener);
+    if (name) {
+      this.listener_names = this.listener_names.filter(n => n !== name)
+    }
   }
 
   terminate(): void {
@@ -30,5 +36,9 @@ export default class WorkerManager {
 
   numListeners() {
     return this.listeners.size
+  }
+
+  listenerExists(name: string) {
+    return this.listener_names.includes(name)
   }
 }

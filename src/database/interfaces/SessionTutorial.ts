@@ -1,3 +1,4 @@
+import { Environment } from "@/utils/constants"
 
 export const TUTORIAL_NAMES = [
     "Hello World",
@@ -22,11 +23,33 @@ export const TUTORIAL_STEPS = {
     "Inputs and More!": [
         "The Input",
         "More Inputs!",
-        "Challenge: your own input!"
+        "Challenge: your own input!",
+        "A New Environment!"
     ],
     "Next1": [],
     "Next2": []
 } as {[key: string]: string[]}
+
+
+export const TUTORIAL_ENVS = {
+    "Hello World": {
+        "Say hello!": Environment.CONSOLE,
+        "Comments": Environment.CONSOLE,
+        "Challenge: Introduce yourself!": Environment.CONSOLE,
+        "Challenge: Shapes!!": Environment.CONSOLE,
+        "Variables": Environment.CONSOLE,
+        "Changing Strings!": Environment.CONSOLE,
+        "Numbers": Environment.CONSOLE,
+        "Changing Numbers!": Environment.CONSOLE,
+        "Challenge: Raised to a Power!": Environment.CONSOLE,
+    },
+    "Inputs and More!": {
+        "The Input": Environment.CONSOLE,
+        "More Inputs!": Environment.CONSOLE,
+        "Challenge: your own input!": Environment.CONSOLE,
+        "A New Environment!": Environment.AVATAR
+    }
+}
 
 
 export const TUTORIAL_SOLUTIONS = {
@@ -106,7 +129,8 @@ print('Hello, ' + first_name + ' ' + last_name)
     "Challenge: your own input!": `
 age = input('How old are you?') 
 print('I am ' + age + ' years old')
-    `.trim()
+    `.trim(),
+    "A New Environment!": ""
     }
 } as {[key: string]: {[key: string]: string}}
 
@@ -193,7 +217,8 @@ print('Hello, ' + first_name + ' ' + last_name)
     "Challenge: your own input!": `
 # for example, ask the user for their age
 # and print it in a sentence!
-    `.trim()
+    `.trim(),
+    "A New Environment!": ""
     }
 } as {[key: string]: {[key: string]: string}}
 

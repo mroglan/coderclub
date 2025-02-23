@@ -7,21 +7,44 @@ const loadPyodideInstance = async () => {
 
     self.printMsg = []
     self.lastPrintSend = Date.now()
+    self.numPrints = 0
 
     pyodide.globals.set("print", msg => {
-        self.printMsg.push(msg)
-        if (Date.now() - self.lastPrintSend < 100) return
+        // self.printMsg.push(msg)
+        // if (Date.now() - self.lastPrintSend < 100) return
+        self.numPrints += 1
+        if (self.numPrints > 5000) return
 
-        self.postMessage({type: "print", msg: self.printMsg.join("\n")})
-        self.printMsg = []
-        self.lastPrintSend = Date.now()
+        self.postMessage({type: "print", msg})
+        // self.postMessage({type: "print", msg: self.printMsg.join("\n")})
+        // self.printMsg = []
+        // self.lastPrintSend = Date.now()
     })
 
     pyodide.globals.set("input", async (prompt) => {
+        const p = [...self.printMsg, `[prompt] ${prompt}`].join("\n")
+        self.printMsg = []
         return new Promise((resolve) => {
             self.inputResolver = resolve
-            self.postMessage({type: "input", prompt})
+            self.postMessage({type: "input", prompt: p})
         })
+    })
+
+    pyodide.globals.set("__get_canvas_state", async () => {
+        return new Promise(resolve => {
+            if (self.canvasState) {
+                resolve(self.canvasState)
+            } else {
+                self.canvasStateResolver = resolve
+            }
+        })
+    })
+
+    pyodide.globals.set("__clear_print_queue", () => {
+        if (self.printMsg.length < 1) return
+        self.postMessage({type: "print", msg: self.printMsg.join("\n")})
+        self.printMsg = []
+        self.lastPrintSend = Date.now()
     })
 
     self.postMessage({type: "ready"}); // Notify main thread that Pyodide is ready
@@ -40,8 +63,20 @@ self.onmessage = async (event) => {
         return
     }
 
+    if (event.data.type === "canvas_state") {
+        if (self.canvasStateResolver) {
+            self.canvasStateResolver(event.data.value)
+            self.canvasStateResolver = null
+        } else {
+            self.canvasState = event.data.value
+        }
+    }
+
     if (event.data.type === "execute") {
         try {
+            self.canvasState = null
+            self.canvasStateResolver = null
+            self.inputResolver = null
             const result = await pyodide.runPythonAsync(event.data.code)
             if (self.printMsg.length > 0) {
                 self.postMessage({type: "print", msg: self.printMsg.join("\n")})
