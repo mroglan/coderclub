@@ -134,15 +134,6 @@ function AvatarCanvas({images, pyodideWorker, pyodideState, height}: AvatarCanva
                         w: .20,
                         h: .20
                     },
-                    // 2: {
-                    //     name: "fire",
-                    //     movement: "constant",
-                    //     x: .5, y: .5, w: .10, h: .10,
-                    //     vel: {
-                    //         x: .1, y: 0
-                    //     },
-                    //     autodelete: true
-                    // }
                 }
             }
         }
@@ -189,7 +180,9 @@ function AvatarCanvas({images, pyodideWorker, pyodideState, height}: AvatarCanva
 
     useEffect(() => {
         const observer = new ResizeObserver(() => {
-            if (!executingRef.current) {
+            if (!executingRef.current
+                && containerRef.current.clientWidth
+                && containerRef.current.clientWidth !== canvasRef.current.width) {
                 canvasRef.current.width = 0
                 canvasRef.current.height = 0
             }

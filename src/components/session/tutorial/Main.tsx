@@ -53,8 +53,9 @@ export default function Main({data, type}: Props) {
         let t = []
         if (type === "teacher") {
             t = ["My Code", "Student Code", "Solution"]
+        } else {
+            t = ["My Code", "Solution"]
         }
-        t = ["My Code", "Solution"]
         if (TUTORIAL_ENVS[data.tutorial.name][router.query.step] !== Environment.CONSOLE) {
             t.splice(1, 0, "Images")
         }
@@ -308,7 +309,7 @@ export default function Main({data, type}: Props) {
                                         <Box display={selectedTab === "Images" ? undefined : "none"}>
                                             <ImageEditor images={images} />
                                         </Box>
-                                        <Box display={selectedTab === "My Code" ? undefined : "none"}>
+                                        <Box display={selectedTab !== "Images" ? undefined : "none"}>
                                             <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
                                                 editorViewRef={editorViewRef} />
                                         </Box>

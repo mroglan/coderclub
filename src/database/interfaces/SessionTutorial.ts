@@ -24,7 +24,8 @@ export const TUTORIAL_STEPS = {
         "The Input",
         "More Inputs!",
         "Challenge: your own input!",
-        "A New Environment!"
+        "A New Environment!",
+        "Inputs: You choose!"
     ],
     "Next1": [],
     "Next2": []
@@ -47,7 +48,8 @@ export const TUTORIAL_ENVS = {
         "The Input": Environment.CONSOLE,
         "More Inputs!": Environment.CONSOLE,
         "Challenge: your own input!": Environment.CONSOLE,
-        "A New Environment!": Environment.AVATAR
+        "A New Environment!": Environment.AVATAR,
+        "Inputs: You choose!": Environment.AVATAR
     }
 }
 
@@ -130,7 +132,15 @@ print('Hello, ' + first_name + ' ' + last_name)
 age = input('How old are you?') 
 print('I am ' + age + ' years old')
     `.trim(),
-    "A New Environment!": ""
+    "A New Environment!": `
+# You can use 'fire', 'water', 'earth', and 'air'!!
+print('fire')
+    `.trim(),
+    "Inputs: You choose!": `
+# The avatar will use what you input!
+element = input('What element do I use?')
+print(element)
+    `.trim()
     }
 } as {[key: string]: {[key: string]: string}}
 
@@ -218,7 +228,15 @@ print('Hello, ' + first_name + ' ' + last_name)
 # for example, ask the user for their age
 # and print it in a sentence!
     `.trim(),
-    "A New Environment!": ""
+    "A New Environment!": `
+# You can use 'fire', 'water', 'earth', and 'air'!!
+print('fire')
+    `.trim(),
+    "Inputs: You choose!": `
+# The avatar will use what you input!
+element = input('What element do I use?')
+print(element)
+    `.trim()
     }
 } as {[key: string]: {[key: string]: string}}
 
