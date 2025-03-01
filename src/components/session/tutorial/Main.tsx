@@ -53,16 +53,19 @@ export default function Main({data, type}: Props) {
         let t = []
         if (type === "teacher") {
             t = ["My Code", "Student Code", "Solution"]
+        } else {
+            t = ["My Code", "Solution"]
         }
-        t = ["My Code", "Solution"]
         if (TUTORIAL_ENVS[data.tutorial.name][router.query.step] !== Environment.CONSOLE) {
             t.splice(1, 0, "Images")
         }
         return t
     }, [type, router.query])
 
+    const [imagesSaved, setImagesSaved] = useState(true)
+
     const pyodide = usePyodide()
-    const images = useImages()
+    const images = useImages(data.progress.images, () => setImagesSaved(false))
     const [clearCount, setClearCount] = useState(0)
 
     const editorViewRef = useRef<EditorView>(null);
@@ -145,6 +148,7 @@ export default function Main({data, type}: Props) {
         if (!editorViewRef.current) return
         console.log('updateCodeProgress')
         try {
+            console.log('imagesSaved', imagesSaved)
             await axios({
                 method: "POST",
                 url: `/api/session/${router.query.url_name}/tutorial/update-progress`,
@@ -152,9 +156,14 @@ export default function Main({data, type}: Props) {
                     sessionId: data.tutorial.sessionId,
                     tutorialName: data.tutorial.name,
                     stepName: router.query.step,
-                    code: editorViewRef.current.state.doc.toString()
+                    code: editorViewRef.current.state.doc.toString(),
+                    images: imagesSaved ? undefined : {
+                        meta: images.meta,
+                        images: images.images
+                    }
                 }
             })
+            setImagesSaved(true)
         } catch (e) {
             console.log(e)
         }
@@ -308,7 +317,7 @@ export default function Main({data, type}: Props) {
                                         <Box display={selectedTab === "Images" ? undefined : "none"}>
                                             <ImageEditor images={images} />
                                         </Box>
-                                        <Box display={selectedTab === "My Code" ? undefined : "none"}>
+                                        <Box display={selectedTab !== "Images" ? undefined : "none"}>
                                             <DefaultEditor originalCode={totalProgress.code[router.query.step as string] || TUTORIAL_TEMPLATES[data.tutorial.name][router.query.step as string]}
                                                 editorViewRef={editorViewRef} />
                                         </Box>
@@ -338,7 +347,13 @@ export default function Main({data, type}: Props) {
                         <Box mt={3}>
                             <OutputManager env={TUTORIAL_ENVS[data.tutorial.name][router.query.step]}
                                 pyodideWorker={pyodide.manager} pyodideState={pyodide.state}
-                                clearCount={0} images={images} />
+                                clearCount={clearCount} 
+                                images={selectedTab !== "Student Code" ? images : 
+                                    studentCodeToShow?.images || {
+                                        meta: {image: "", resolution: 0},
+                                        images: []
+                                    } as any
+                                } />
                             <DefaultErrorDisplay error={pyodide.state.executionError} />
                         </Box>
                     </Grid2>

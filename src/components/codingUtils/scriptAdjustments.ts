@@ -18,17 +18,20 @@ export class ScriptAdjustments {
     }
 
     private basicModifications(s: string) {
+        s = "from time import sleep\n" + s
         return this.appendAwaitToInput(s)
     }
 
     private waitForAllObjectsToExitCanvas(s: string, except: string[]) {
         return s += `\n
 ${this.clearPrintQueueMacro}
+sleep(0.5)
 ${this.getCanvasDataMacro}
 while True:
     names = list(map(lambda img: img["name"], __canvas_data["images"].values()))
     if len(list(filter(lambda n: n not in [${except.map(e => `"${e}"`).join(",")}], names))) == 0:
         break
+    sleep(0.1)
     ${this.getCanvasDataMacro}
 `
     }

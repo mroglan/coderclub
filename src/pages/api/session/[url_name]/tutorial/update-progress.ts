@@ -23,7 +23,8 @@ export default verifyUser(async function UpdateProgress(req: NextApiRequest, res
             req.body.sessionId,
             req.body.tutorialName,
             req.body.stepName,
-            req.body.code
+            req.body.code,
+            req.body.images
         )
 
         return res.status(200).json({result: data?.data})

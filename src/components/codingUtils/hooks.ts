@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import WorkerManager from "./WorkerManager"
 import { ScriptAdjustments } from "./scriptAdjustments"
+import { TutorialProgress } from "@/database/interfaces/TutorialProgress"
 
 export function usePyodide() {
 
@@ -42,7 +43,7 @@ export function usePyodide() {
             type: "execute",
             code: code
         })
-        setState({...state, executing: true})
+        setState({...state, executing: true, executionError: ""})
     }
 
     return {
@@ -51,13 +52,13 @@ export function usePyodide() {
 }
 
 
-export function useImages() {
+export function useImages(initial?: TutorialProgress["images"], onUpdate?: () => void) {
 
-    const [meta, setMeta] = useState({
+    const [meta, setMeta] = useState(initial ? initial.meta : {
         image: "",
         resolution: 0
     })
-    const [images, setImages] = useState([])
+    const [images, setImages] = useState(initial ? initial.images : [])
 
     const names = useMemo(() => images.map(img => img.name), [images])
 
@@ -67,6 +68,9 @@ export function useImages() {
         }
         const image = data.meta.image
         const resolution = (Object.values(data.frames)[0] as any).frame.w
+        if (resolution > 32) {
+            return "Max supported resolution is 32 x 32 pixels."
+        }
         const imgs = Object.keys(data.frames).map(key => (
             {
                 name: key.split(".")[0].replace(" ", "_"),
@@ -77,6 +81,7 @@ export function useImages() {
 
         setMeta({image, resolution})
         setImages(imgs)
+        onUpdate && onUpdate()
         return ""
     }
 
@@ -85,6 +90,7 @@ export function useImages() {
         const copy = [...images]
         copy[i].name = name
         setImages(copy)
+        onUpdate && onUpdate()
     }
 
     return {
@@ -126,7 +132,6 @@ export function useCanvas(pyodideManager: WorkerManager,
 
     const cancel = useRef<boolean>(false)
     const lastAnimationTime = useRef<number>(null)
-    const lastWorkerUpdate = useRef<number>(0)
     const data = useRef<any>({})
 
     useMemo(() => {
@@ -134,6 +139,34 @@ export function useCanvas(pyodideManager: WorkerManager,
             cancel.current = true
         }
     }, [executing])
+
+    const listener = (event: MessageEvent) => {
+        if (event.data.type === "canvas_data_req") {
+            const msg:any = {}
+            msg.images = {}
+            for (const key of Object.keys(data.current.images)) {
+                const d = data.current.images[key]
+                msg.images[key] = {
+                    name: d.name,
+                    x: d.x, y: d.y, w: d.w, h: d.h
+                }
+            }
+            pyodideManager.postMessage({
+                type: "canvas_state",
+                value: msg
+            })
+        }
+    }
+
+    useEffect(() => {
+        if (!pyodideManager) return
+
+        if (pyodideManager.listenerExists("canvasHook")) return
+
+        pyodideManager.addListener(listener, "canvasHook")
+
+        return () => pyodideManager.removeListener(listener, "canvasHook")
+    }, [pyodideManager])
 
     useEffect(() => {
         if (!executing) return
@@ -196,23 +229,6 @@ export function useCanvas(pyodideManager: WorkerManager,
                         drawing.w*w, drawing.h*h
                     )
                 }
-            }
-
-            if ((time - lastWorkerUpdate.current)/1000 > 1/60) {
-                lastWorkerUpdate.current = time
-                const msg:any = {}
-                msg.images = {}
-                for (const key of Object.keys(data.current.images)) {
-                    const d = data.current.images[key]
-                    msg.images[key] = {
-                        name: d.name,
-                        x: d.x, y: d.y, w: d.w, h: d.h
-                    }
-                }
-                pyodideManager.postMessage({
-                    type: "canvas_state",
-                    value: msg
-                })
             }
 
             requestAnimationFrame(loop)

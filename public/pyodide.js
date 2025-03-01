@@ -12,6 +12,10 @@ const loadPyodideInstance = async () => {
     pyodide.globals.set("print", msg => {
         // self.printMsg.push(msg)
         // if (Date.now() - self.lastPrintSend < 100) return
+        if (typeof msg !== "string") {
+            throw new Error("Expected string passed to print()!")
+        }
+
         self.numPrints += 1
         if (self.numPrints > 5000) return
 
@@ -22,6 +26,9 @@ const loadPyodideInstance = async () => {
     })
 
     pyodide.globals.set("input", async (prompt) => {
+        if (typeof prompt !== "string") {
+            throw new Error("Expected string passed to input()!")
+        }
         const p = [...self.printMsg, `[prompt] ${prompt}`].join("\n")
         self.printMsg = []
         return new Promise((resolve) => {
@@ -32,11 +39,8 @@ const loadPyodideInstance = async () => {
 
     pyodide.globals.set("__get_canvas_state", async () => {
         return new Promise(resolve => {
-            if (self.canvasState) {
-                resolve(self.canvasState)
-            } else {
-                self.canvasStateResolver = resolve
-            }
+            self.canvasStateResolver = resolve
+            self.postMessage({type: "canvas_data_req"})
         })
     })
 
@@ -65,10 +69,9 @@ self.onmessage = async (event) => {
 
     if (event.data.type === "canvas_state") {
         if (self.canvasStateResolver) {
+            // self.postMessage({type: "print", msg: `I saw ${JSON.stringify(event.data.value)}`})
             self.canvasStateResolver(event.data.value)
             self.canvasStateResolver = null
-        } else {
-            self.canvasState = event.data.value
         }
     }
 
