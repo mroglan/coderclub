@@ -116,13 +116,6 @@ function AvatarCanvas({images, pyodideWorker, pyodideState, height}: AvatarCanva
     useMemo(() => executingRef.current = pyodideState.executing, [pyodideState])
 
     useMemo(() => {
-        if (pyodideState.executing) {
-            canvasRef.current.width = containerRef.current.clientWidth
-            canvasRef.current.height = containerRef.current.clientWidth
-        }
-    }, [pyodideState])
-
-    useMemo(() => {
         if (pyodideState.executing && Object.keys(data.current).length < 1) {
             data.current = {
                 images: {
@@ -180,11 +173,12 @@ function AvatarCanvas({images, pyodideWorker, pyodideState, height}: AvatarCanva
 
     useEffect(() => {
         const observer = new ResizeObserver(() => {
-            if (!executingRef.current
+            if (!executingRef.current && containerRef.current
                 && containerRef.current.clientWidth
                 && containerRef.current.clientWidth !== canvasRef.current.width) {
-                canvasRef.current.width = 0
-                canvasRef.current.height = 0
+                console.log('resize width', containerRef.current.clientWidth)
+                canvasRef.current.width = containerRef.current.clientWidth
+                canvasRef.current.height = containerRef.current.clientWidth
             }
         })
         observer.observe(containerRef.current)
@@ -224,7 +218,13 @@ export function OutputManager({env, images, pyodideWorker, pyodideState, clearCo
         return null
     }, [env])
 
-    useMemo(() => setSelectedTab("Console"), [env])
+    useMemo(() => {
+        if (env === Environment.CONSOLE) {
+            setSelectedTab("Console")
+        } else {
+            setSelectedTab("Canvas")
+        }
+    }, [env])
 
     const listener = (event: MessageEvent) => {
         if (event.data.type === "input") {
