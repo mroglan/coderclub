@@ -68,6 +68,9 @@ export function useImages(initial?: TutorialProgress["images"], onUpdate?: () =>
         }
         const image = data.meta.image
         const resolution = (Object.values(data.frames)[0] as any).frame.w
+        if (resolution > 32) {
+            return "Max supported resolution is 32 x 32 pixels."
+        }
         const imgs = Object.keys(data.frames).map(key => (
             {
                 name: key.split(".")[0].replace(" ", "_"),
