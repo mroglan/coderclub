@@ -62,8 +62,10 @@ export default function Main({data, type}: Props) {
         return t
     }, [type, router.query])
 
+    const [imagesSaved, setImagesSaved] = useState(true)
+
     const pyodide = usePyodide()
-    const images = useImages()
+    const images = useImages(data.progress.images, () => setImagesSaved(false))
     const [clearCount, setClearCount] = useState(0)
 
     const editorViewRef = useRef<EditorView>(null);
@@ -146,6 +148,7 @@ export default function Main({data, type}: Props) {
         if (!editorViewRef.current) return
         console.log('updateCodeProgress')
         try {
+            console.log('imagesSaved', imagesSaved)
             await axios({
                 method: "POST",
                 url: `/api/session/${router.query.url_name}/tutorial/update-progress`,
@@ -153,9 +156,14 @@ export default function Main({data, type}: Props) {
                     sessionId: data.tutorial.sessionId,
                     tutorialName: data.tutorial.name,
                     stepName: router.query.step,
-                    code: editorViewRef.current.state.doc.toString()
+                    code: editorViewRef.current.state.doc.toString(),
+                    images: imagesSaved ? undefined : {
+                        meta: images.meta,
+                        images: images.images
+                    }
                 }
             })
+            setImagesSaved(true)
         } catch (e) {
             console.log(e)
         }

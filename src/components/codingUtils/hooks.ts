@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import WorkerManager from "./WorkerManager"
 import { ScriptAdjustments } from "./scriptAdjustments"
+import { TutorialProgress } from "@/database/interfaces/TutorialProgress"
 
 export function usePyodide() {
 
@@ -51,13 +52,13 @@ export function usePyodide() {
 }
 
 
-export function useImages() {
+export function useImages(initial?: TutorialProgress["images"], onUpdate?: () => void) {
 
-    const [meta, setMeta] = useState({
+    const [meta, setMeta] = useState(initial ? initial.meta : {
         image: "",
         resolution: 0
     })
-    const [images, setImages] = useState([])
+    const [images, setImages] = useState(initial ? initial.images : [])
 
     const names = useMemo(() => images.map(img => img.name), [images])
 
@@ -77,6 +78,7 @@ export function useImages() {
 
         setMeta({image, resolution})
         setImages(imgs)
+        onUpdate && onUpdate()
         return ""
     }
 
@@ -85,6 +87,7 @@ export function useImages() {
         const copy = [...images]
         copy[i].name = name
         setImages(copy)
+        onUpdate && onUpdate()
     }
 
     return {
