@@ -339,7 +339,7 @@ export default function Main({data, type}: Props) {
                         <Box mt={3}>
                             <OutputManager env={TUTORIAL_ENVS[data.tutorial.name][router.query.step]}
                                 pyodideWorker={pyodide.manager} pyodideState={pyodide.state}
-                                clearCount={0} images={images} />
+                                clearCount={clearCount} images={images} />
                             <DefaultErrorDisplay error={pyodide.state.executionError} />
                         </Box>
                     </Grid2>

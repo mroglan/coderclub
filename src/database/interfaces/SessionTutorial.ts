@@ -25,7 +25,11 @@ export const TUTORIAL_STEPS = {
         "More Inputs!",
         "Challenge: your own input!",
         "A New Environment!",
-        "Inputs: You choose!"
+        "Inputs: You choose!",
+        "Challenge: Many Inputs!",
+        "The If Statement",
+        "A Shortcut?",
+        "More Shortcuts?"
     ],
     "Next1": [],
     "Next2": []
@@ -49,7 +53,11 @@ export const TUTORIAL_ENVS = {
         "More Inputs!": Environment.CONSOLE,
         "Challenge: your own input!": Environment.CONSOLE,
         "A New Environment!": Environment.AVATAR,
-        "Inputs: You choose!": Environment.AVATAR
+        "Inputs: You choose!": Environment.AVATAR,
+        "Challenge: Many Inputs!": Environment.AVATAR,
+        "The If Statement": Environment.CONSOLE,
+        "A Shortcut?": Environment.AVATAR,
+        "More Shortcuts?": Environment.AVATAR
     }
 }
 
@@ -140,6 +148,47 @@ print('fire')
 # The avatar will use what you input!
 element = input('What element do I use?')
 print(element)
+    `.trim(),
+    "Challenge: Many Inputs!": `
+element = input('What element do I use?')
+print(element)
+element = input('What element do I use?')
+print(element)
+    `.trim(),
+    "The If Statement": `
+name = 'BOB'
+
+if name == 'BOB':
+    print('YOU ARE BOB?')
+
+if name == 'Something else':
+    print('Interesting...')
+    `.trim(),
+    "A Shortcut?": `
+# We can now input "f" instead of "fire" to shoot a fire ball!
+
+element = input('What element do I use?')
+
+if element == 'f':
+    print('fire')
+
+if element != 'f':
+    print(element)
+    `.trim(),
+    "More Shortcuts?": `
+element = input('What element do I use?')
+
+if element == 'f':
+    print('fire')
+
+if element == 'w':
+    print('water')
+
+if element == 'e':
+    print('earth')
+
+if element == 'a':
+    print('air')
     `.trim()
     }
 } as {[key: string]: {[key: string]: string}}
@@ -236,6 +285,39 @@ print('fire')
 # The avatar will use what you input!
 element = input('What element do I use?')
 print(element)
+    `.trim(),
+    "Challenge: Many Inputs!": `
+# input multiple elements, and use them!
+    `.trim(),
+    "The If Statement": `
+name = 'BOB'
+
+if name == 'BOB':
+    print('YOU ARE BOB?')
+
+if name == 'Something else':
+    print('Interesting...')
+    `.trim(),
+    "A Shortcut?": `
+# We can now input "f" instead of "fire" to shoot a fire ball!
+
+element = input('What element do I use?')
+
+if element == 'f':
+    print('fire')
+
+if element != 'f':
+    print(element)
+    `.trim(),
+    "More Shortcuts?": `
+# Let's try to make "w" a shortcut for "water",
+# "e" a shortcut for "earth",
+# and "a" a shortcut for "air"!
+
+element = input('What element do I use?')
+
+if element == 'f':
+    print('fire')
     `.trim()
     }
 } as {[key: string]: {[key: string]: string}}
