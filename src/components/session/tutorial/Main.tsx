@@ -65,7 +65,7 @@ export default function Main({data, type}: Props) {
     const [imagesSaved, setImagesSaved] = useState(true)
 
     const pyodide = usePyodide()
-    const images = useImages(data.progress.images, () => setImagesSaved(false))
+    const images = useImages(data.progress?.images, () => setImagesSaved(false))
     const [clearCount, setClearCount] = useState(0)
 
     const editorViewRef = useRef<EditorView>(null);
