@@ -3,6 +3,7 @@ import { Environment } from "@/utils/constants"
 export const TUTORIAL_NAMES = [
     "Hello World",
     "Inputs and More!",
+    "Loops!",
     "Next1",
     "Next2"
 ]
@@ -31,6 +32,12 @@ export const TUTORIAL_STEPS = {
         "A Shortcut?",
         "More Shortcuts?"
     ],
+    "Loops!": [
+        "Customize Your Game",
+        "The While Loop",
+        "A Guessing Game",
+        "Challenge: Infinite Calculator!"
+    ],
     "Next1": [],
     "Next2": []
 } as {[key: string]: string[]}
@@ -58,6 +65,12 @@ export const TUTORIAL_ENVS = {
         "The If Statement": Environment.CONSOLE,
         "A Shortcut?": Environment.AVATAR,
         "More Shortcuts?": Environment.AVATAR
+    },
+    "Loops!": {
+        "Customize Your Game": Environment.AVATAR,
+        "The While Loop": Environment.CONSOLE,
+        "A Guessing Game": Environment.CONSOLE,
+        "Challenge: Infinite Calculator!": Environment.CONSOLE
     }
 }
 
@@ -190,6 +203,60 @@ if element == 'e':
 if element == 'a':
     print('air')
     `.trim()
+    },
+    "Loops!": {
+        "Customize Your Game": `
+# Upload piskel images to use them!
+# Rename the images to
+# "avatar", "fire", "water", "earth", or "air"
+# to customize the images used in the game!
+
+# Some code to try them out:
+print('fire')
+sleep(0.5) # wait half a second
+print('water')
+sleep(0.5)
+print('earth')
+sleep(0.5)
+print('air')
+        `.trim(),
+        "The While Loop": `
+# Let's make the computer count to 10!
+# with only a few lines of code!
+
+num = 1
+
+while num <= 10:
+    print(str(num))
+    num = num + 1
+
+print('Done counting!')
+        `.trim(),
+        "A Guessing Game": `
+import random
+
+my_num = random.randint(1, 5)
+
+guess = int(input('Guess a number!'))
+while guess != my_num:
+    print('Wrong number guessed!')
+    guess = int(input('Guess a number!'))
+
+print('You guessed the correct number!')
+        `.trim(),
+        "Challenge: Infinite Calculator!": `
+wants_to_continue = True
+while wants_to_continue:
+    num1 = int(input('Enter a number:'))
+    num2 = int(input('Enter a number:'))
+    sum = num1 + num2
+    print(str(num1) + ' + ' + str(num2) + ' = ' + str(sum))
+    response = input('Do you want to continue?')
+    if response == 'yes':
+        wants_to_continue = True
+    else:
+        wants_to_continue = False
+        `.trim()
     }
 } as {[key: string]: {[key: string]: string}}
 
@@ -319,6 +386,46 @@ element = input('What element do I use?')
 if element == 'f':
     print('fire')
     `.trim()
+    },
+    "Loops!": {
+        "Customize Your Game": `
+# Upload piskel images to use them!
+# Rename the images to
+# "avatar", "fire", "water", "earth", or "air"
+# to customize the images used in the game!
+
+# Some code to try them out:
+print('fire')
+sleep(0.5) # wait half a second
+print('water')
+sleep(0.5)
+print('earth')
+sleep(0.5)
+print('air')
+        `.trim(),
+        "The While Loop": `
+# Let's make the computer count to 10!
+# with only a few lines of code!
+
+num = 1
+
+while num <= 10:
+    print(str(num))
+    num = num + 1
+
+print('Done counting!')
+        `.trim(),
+        "A Guessing Game": `
+# Let's work together to make a guessing game! 
+        `.trim(),
+        "Challenge: Infinite Calculator!": `
+# Make a program that does the following:
+# Asks the user for two numbers
+# Then, prints the sum of those two numbers 
+# Then, asks the user if they want to continue
+# If they do want to continue, repeats the program
+# Else, ends the program
+        `.trim()
     }
 } as {[key: string]: {[key: string]: string}}
 
