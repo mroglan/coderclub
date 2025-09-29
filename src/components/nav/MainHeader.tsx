@@ -29,6 +29,13 @@ export default function MainHeader({loggedIn}:Props) {
                     </Grid2>
                     <Grid2 flex={1} />
                     <Grid2 mr={3}>
+                        <Link href="/vex">
+                            <Typography variant="body1" >
+                                Vex
+                            </Typography>
+                        </Link>
+                    </Grid2>
+                    <Grid2 mr={3}>
                         <Link href="/sandbox">
                             <Typography variant="body1" >
                                 Sandbox
