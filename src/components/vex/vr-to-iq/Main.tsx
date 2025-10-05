@@ -1,7 +1,8 @@
 import { Box, Checkbox, Container, FormControl, FormControlLabel, Grid2, InputLabel, MenuItem, Paper, Select, TextField, Typography } from "@mui/material";
 import { useMemo, useState } from "react";
 import TextareaAutosize from '@mui/material/TextareaAutosize';
-import { convertCode, removeConfigurationCode } from "./convertCode";
+import { convertCode, getIqPythonData, removeConfigurationCode } from "./convertCode";
+import { PurplePrimaryButton } from "@/components/misc/buttons";
 
 
 const builds = [
@@ -29,7 +30,15 @@ export default function Main() {
         }
     }, [inputCode, hideConfigCode])
 
-    console.log(hideConfigCode)
+    const downloadConvertedCode = () => {
+        const blob = new Blob([getIqPythonData(convertedCode, inputBuild)], { type: "application/json" }); 
+        const url = URL.createObjectURL(blob); 
+        const a = document.createElement("a"); 
+        a.href = url; 
+        a.download = "program.iqpython"; 
+        a.click(); 
+        URL.revokeObjectURL(url);
+    }
 
     return (
         <Box mt={3}>
@@ -93,14 +102,23 @@ export default function Main() {
                                     />
                                 </Box>
                             </Box>
+                        </Grid2>
+                    </Grid2>
+                </Box>
+                <Box>
+                    <Grid2 container spacing={3}>
+                        <Grid2 size={{xs: 6}} />
+                        <Grid2 size={{xs: 6}}>
                             <Box>
-                                <Box>
+                                <Box mb={2}>
                                     <FormControl>
                                         <FormControlLabel control={<Checkbox value={hideConfigCode} onChange={(e) => setHideConfigCode(Boolean(e.target.checked))} defaultChecked />} label="Hide Configuration Code" />
                                     </FormControl>
                                 </Box>
                                 <Box>
-                                    download code
+                                    <PurplePrimaryButton onClick={downloadConvertedCode}>
+                                        Download Converted Code
+                                    </PurplePrimaryButton>
                                 </Box>
                             </Box>
                         </Grid2>
