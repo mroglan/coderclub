@@ -3,7 +3,8 @@ import Link from "next/link";
 
 
 export const weeks = {
-    2: "It's a Race!"
+    2: "It's a Race!",
+    3: "Racing in Style"
 }
 
 export default function Main() {
