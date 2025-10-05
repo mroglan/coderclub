@@ -11,6 +11,7 @@ export function PathSelctor({path, setPath}) {
         event: React.MouseEvent<HTMLElement>,
         newAlignment: string,
     ) => {
+        if (!newAlignment) return;
         setPath(newAlignment);
     };
 
