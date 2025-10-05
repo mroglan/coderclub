@@ -2,6 +2,7 @@ import MainFooter from "@/components/nav/MainFooter";
 import MainHeader from "@/components/nav/MainHeader";
 import Main from "@/components/vex/Main";
 import Week2 from "@/components/vex/Week2";
+import Week3 from "@/components/vex/Week3";
 import { getUserFromCtx, mustNotBeAuthenticated } from "@/utils/auth";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import Head from "next/head";
@@ -20,6 +21,8 @@ export default function Home({week}: Props) {
 
     if (week == "2") {
         component = <Week2 />
+    } else if (week == "3") {
+        component = <Week3 />
     }
 
 
