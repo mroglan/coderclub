@@ -21,7 +21,7 @@ export default function Week4() {
                         <Typography display="inline">
                             1. Finish writing the program at{' '}
                         </Typography> 
-                        <PrimaryLink href="https://vr.vex.com/">
+                        <PrimaryLink href="https://vr.vex.com/" target="_blank">
                             vr.vex.com 
                         </PrimaryLink>
                         <Typography display="inline">
@@ -37,7 +37,7 @@ export default function Week4() {
                         <Typography display="inline">
                             Write your code in the simulation, and when you're ready to run it on the physical robot,{' '}
                         </Typography>
-                        <PrimaryLink href="https://docs.google.com/forms/d/e/1FAIpQLSfjG1UhZPVS-yMYXGLUUvLGCm5epwvOWIWZyYdBHod1zyt0bg/viewform?usp=header">
+                        <PrimaryLink target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSfjG1UhZPVS-yMYXGLUUvLGCm5epwvOWIWZyYdBHod1zyt0bg/viewform?usp=header">
                             submit your code here.
                         </PrimaryLink>
                         <Typography>
