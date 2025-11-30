@@ -6,7 +6,8 @@ export const weeks = {
     2: "It's a Race!",
     3: "Racing in Style",
     4: "Finishing the Race",
-    5: "Introducing the Claw Bot!"
+    5: "Introducing the Claw Bot!",
+    6: "Finishing the Claw Bot!"
 }
 
 export default function Main() {
